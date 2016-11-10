@@ -46,7 +46,7 @@ ptracking <- NULL
 eff_area <- NULL
 eff_type <- NULL
 
-writePG <- function(data,schemat ="rd"){
+writePG <- function(data,schemat ="rd", dbname="NBA16"){
   on.exit(dbDisconnect(con))
   tryCatch({
     dane<- readRDS(data)
@@ -54,7 +54,7 @@ writePG <- function(data,schemat ="rd"){
     name <- gsub(".RDS","",name)
     require(RPostgreSQL)
     drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname = "NBA16", host = "localhost", port = 5432, user = "postgres", password = "postgres")
+    con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
     if(name %in% c("traditional","advanced","misc","ptracking","playbyplay")){
       dbWriteTable(con, c(schemat, name), value = dane, overwrite = FALSE, row.names = FALSE, append = T)
 
@@ -73,30 +73,30 @@ writePG <- function(data,schemat ="rd"){
   })
 }
 
-getLastGame <- function(date = Sys.Date()-1){
+getLastGame <- function(date = Sys.Date()-1, dbname="NBA16"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = "NBA16", host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
   query <- paste("select max(\"GAME_ID\") from rd.calendar where date = \'",date,"\'",sep="")
   return(as.character(dbGetQuery(con, query)))
 
 }
 
-getDoneGames <- function(date = Sys.Date()-1){
+getDoneGames <- function(date = Sys.Date()-1, dbname="NBA16"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = "NBA16", host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
   query <- paste("select \"GAME_ID\" from rd.calendar where date <= \'",date,"\'",sep="")
   return(as.character(unlist(as.list(dbGetQuery(con, query)))))
 }
 
-checkActual <- function(table,date = Sys.Date()-1){
+checkActual <- function(table,date = Sys.Date()-1, dbname="NBA16"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = "NBA16", host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
   query <- paste("select distinct \"GAME_ID\" from rd.",table,sep="")
   #return(as.character(unlist(as.list(dbGetQuery(con, query)))))
   gms <- as.character(unlist(as.list(dbGetQuery(con, query))))
@@ -108,11 +108,11 @@ checkActual <- function(table,date = Sys.Date()-1){
   }
 }
 
-getPlayers <- function(x){
+getPlayers <- function(x, dbname = "NBA16"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = "NBA16", host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
   query <- paste("select distinct \"PLAYER_ID\" from rd.playerlist",sep="")
   pls <- as.character(unlist(as.list(dbGetQuery(con, query))))
   return(pls)
