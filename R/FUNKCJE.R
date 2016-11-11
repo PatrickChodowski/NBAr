@@ -92,7 +92,7 @@ getDoneGames <- function(date = Sys.Date()-1, dbname="NBA16"){
   return(as.character(unlist(as.list(dbGetQuery(con, query)))))
 }
 
-checkActual <- function(table,date = Sys.Date()-1, dbname="NBA16"){
+checkActual <- function(table,date = Sys.Date()-1, dbname){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
