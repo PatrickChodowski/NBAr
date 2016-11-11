@@ -26,7 +26,7 @@
 #' @export getPlaytypeTeam
 #' @export getSchedule
 #' @export getNbaSchedule
-#'
+#' @export mo2Num
 #'
 
 
@@ -409,6 +409,7 @@ getSchedule <- function(month){
     paste('http://www.basketball-reference.com/leagues/NBA_2017_games-',month,'.html',sep=""),useInternal = TRUE)
   s <- as.data.frame(readHTMLTable(doc.html,stringsAsFactors= F),stringsAsFactors =F)
   s <- s[,c(1,3,4,5,6,8)]
+  colnames(s) <- c("date","visitor","vpts","home","hpts","to")
   s$d <- substr(s$date, 6, length(s$date))
   s$d1 <- substr(s$d, 1, 3)
   s$d1 <- mo2Num(s$d1)
