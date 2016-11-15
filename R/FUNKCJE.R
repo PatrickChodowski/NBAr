@@ -100,9 +100,9 @@ checkActual <- function(table, dbname, date = Sys.Date()-1){
   query <- paste("select distinct \"GAME_ID\" from rd.",table,sep="")
   #return(as.character(unlist(as.list(dbGetQuery(con, query)))))
   gms <- as.character(unlist(as.list(dbGetQuery(con, query))))
-  rez <- match(getDoneGames(),gms)
+  rez <- match(getDoneGames(dbname = dbname),gms)
   if(any(is.na(rez) == T)){
-    return(getDoneGames()[is.na(rez) == T])
+    return(getDoneGames(dbname = dbname)[is.na(rez) == T])
   }else{
     return(NULL)
   }
