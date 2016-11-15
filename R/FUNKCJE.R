@@ -46,7 +46,7 @@ ptracking <- NULL
 eff_area <- NULL
 eff_type <- NULL
 
-writePG <- function(data,schemat ="rd", dbname="NBA16"){
+writePG <- function(data, dbname, schemat ="rd"){
   on.exit(dbDisconnect(con))
   tryCatch({
     dane<- readRDS(data)
@@ -73,7 +73,7 @@ writePG <- function(data,schemat ="rd", dbname="NBA16"){
   })
 }
 
-getLastGame <- function(date = Sys.Date()-1, dbname="NBA16"){
+getLastGame <- function(dbname, date = Sys.Date()-1){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -83,7 +83,7 @@ getLastGame <- function(date = Sys.Date()-1, dbname="NBA16"){
 
 }
 
-getDoneGames <- function(date = Sys.Date()-1, dbname="NBA16"){
+getDoneGames <- function(dbname,date = Sys.Date()-1){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -92,7 +92,7 @@ getDoneGames <- function(date = Sys.Date()-1, dbname="NBA16"){
   return(as.character(unlist(as.list(dbGetQuery(con, query)))))
 }
 
-checkActual <- function(table,date = Sys.Date()-1, dbname){
+checkActual <- function(table, dbname, date = Sys.Date()-1){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -118,11 +118,11 @@ getPlayers <- function(x, dbname = "NBA16"){
   return(pls)
 }
 
-getPgData <- function(db, schema){
+getPgData <- function(dbname, schema){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = db, host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
   query <-paste("select table_name FROM information_schema.tables where table_schema = \'",schema,"\'",sep="")
   tbs <- as.character(unlist(as.list(dbGetQuery(con, query))))
   #return(sapply(tbs,FUN = function(x) dbReadTable(con, c(schema, x))))
