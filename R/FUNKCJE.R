@@ -34,23 +34,17 @@
 #' @export createLineup
 
 
-traditional <- NULL
-calendar <- NULL
-s5v <- NULL
-s5h <- NULL
-na.locf <- NULL
-teamlist <- NULL
+
+
 shotchart <- NULL
 PLAYER_ID <- NULL
 s <- NULL
-playbyplay <- NULL
 advanced <- NULL
 misc <- NULL
 ptracking <- NULL
 eff_area <- NULL
 eff_type <- NULL
-joinedCalendar <- NULL
-espnCalendar <- NULL
+
 
 writePG <- function(data, dbname, schemat ="rd"){
   on.exit(dbDisconnect(con))
@@ -467,8 +461,13 @@ getESPNpbp <- function(espnID) {
 }
 
 
-createLineup <- function(gameID, calendar = calendar, espnCalendar = espnCalendar) {
-  joinedCalendar <- left_join(calendar, espnCalendar)
+createLineup <- function(gameID
+                         , calendar = calendar
+                         , espnCalendar = espnCalendar
+                         , traditional = traditional
+                         , teamlist = teamlist
+                         , playbyplay = playbyplay) {
+  joinedCalendar <- left_join(calendar, espnCalendar, by = c("visit","home","dateid"))
 
 
   habr <-
