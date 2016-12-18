@@ -467,7 +467,7 @@ getESPNpbp <- function(espnID) {
 }
 
 
-createLineup <- function(gameID) {
+createLineup <- function(gameID, calendar = calendar, espnCalendar = espnCalendar) {
   joinedCalendar <- left_join(calendar, espnCalendar)
 
 
