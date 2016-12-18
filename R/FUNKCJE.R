@@ -462,28 +462,28 @@ getESPNpbp <- function(espnID) {
 
 
 createLineup <- function(gameID
-                         , calendar = calendar
-                         , espnCalendar = espnCalendar
-                         , traditional = traditional
-                         , teamlist = teamlist
-                         , playbyplay = playbyplay) {
-  joinedCalendar <- left_join(calendar, espnCalendar, by = c("visitor","home","dateid"))
+                         , calendar. = calendar
+                         , espnCalendar. = espnCalendar
+                         , traditional. = traditional
+                         , teamlist. = teamlist
+                         , playbyplay. = playbyplay) {
+  joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor","home","dateid"))
 
 
   habr <-
-    teamlist[teamlist$TEAM_NAME == calendar[calendar$GAME_ID == gameID, "home"], "TEAM_ABBREVIATION"]
+    teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID == gameID, "home"], "TEAM_ABBREVIATION"]
   vabr <-
-    teamlist[teamlist$TEAM_NAME == calendar[calendar$GAME_ID == gameID, "visitor"], "TEAM_ABBREVIATION"]
+    teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID == gameID, "visitor"], "TEAM_ABBREVIATION"]
 
   s5v <-
-    traditional[is.na(traditional$START_POSITION) == F & traditional$GAME_ID == gameID &
+    traditional.[is.na(traditional$START_POSITION) == F & traditional.$GAME_ID == gameID &
                   traditional$TEAM_ABBREVIATION == vabr, "PLAYER_NAME"]
   s5h <-
-    traditional[is.na(traditional$START_POSITION) == F & traditional$GAME_ID == gameID &
-                  traditional$TEAM_ABBREVIATION == habr, "PLAYER_NAME"]
+    traditional.[is.na(traditional.$START_POSITION) == F & traditional.$GAME_ID == gameID &
+                  traditional.$TEAM_ABBREVIATION == habr, "PLAYER_NAME"]
 
-  fullv <- traditional[traditional$TEAM_ABBREVIATION == vabr & traditional$GAME_ID == gameID, "PLAYER_NAME"]
-  fullh <- traditional[traditional$TEAM_ABBREVIATION == habr & traditional$GAME_ID == gameID, "PLAYER_NAME"]
+  fullv <- traditional.[traditional.$TEAM_ABBREVIATION == vabr & traditional.$GAME_ID == gameID, "PLAYER_NAME"]
+  fullh <- traditional.[traditional.$TEAM_ABBREVIATION == habr & traditional.$GAME_ID == gameID, "PLAYER_NAME"]
 
   #####ESPN game download
 
@@ -507,8 +507,8 @@ createLineup <- function(gameID
 
   who <- "HOMEDESCRIPTION"
   linueps <-
-    playbyplay[playbyplay$EVENTMSGTYPE %in% c(8, 12) &
-                 playbyplay$GAME_ID == gameID
+    playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8, 12) &
+                 playbyplay.$GAME_ID == gameID
                , append(who,
                         c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
   linueps <-
@@ -664,8 +664,8 @@ createLineup <- function(gameID
   ################################################################################
   who <- "VISITORDESCRIPTION"
   linueps <-
-    playbyplay[playbyplay$EVENTMSGTYPE %in% c(8, 12) &
-                 playbyplay$GAME_ID == gameID
+    playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8, 12) &
+                 playbyplay.$GAME_ID == gameID
                , append(who,
                         c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
   linueps <-
@@ -821,7 +821,7 @@ createLineup <- function(gameID
   ################################################################################
 
   ptest <-
-    playbyplay[playbyplay$GAME_ID == gameID, ]
+    playbyplay.[playbyplay.$GAME_ID == gameID, ]
 
   ptest <-
     left_join(ptest, home[, c(1, 4, 8:12)], by = c("EVENTNUM", "HOMEDESCRIPTION"))
