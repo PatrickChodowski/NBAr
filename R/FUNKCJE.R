@@ -10,6 +10,7 @@
 #' @importFrom lubridate seconds
 #' @import stringr
 #' @import zoo
+#' @import sqldf
 #' @export writePG
 #' @export getLastGame
 #' @export getDoneGames
@@ -32,18 +33,6 @@
 #' @export mo2Num
 #' @export getESPNpbp
 #' @export createLineup
-
-
-
-
-shotchart <- NULL
-PLAYER_ID <- NULL
-s <- NULL
-advanced <- NULL
-misc <- NULL
-ptracking <- NULL
-eff_area <- NULL
-eff_type <- NULL
 
 
 writePG <- function(data, dbname, schemat ="rd"){
@@ -169,11 +158,11 @@ getBoxscoreAdv <- function(gameID){
   return(bsb)
 }
 
-doBoxscore <- function(traditional=traditional, advanced = advanced, misc = misc, ptracking=ptracking){
+doBoxscore <- function(traditional.=traditional, advanced. = advanced, misc. = misc, ptracking.=ptracking){
   require(dplyr)
-  boxscore_all <- left_join(traditional, advanced)
-  boxscore_all <- left_join(boxscore_all, misc)
-  boxscore_all <- left_join(boxscore_all, ptracking)
+  boxscore_all <- left_join(traditional., advanced.)
+  boxscore_all <- left_join(boxscore_all, misc.)
+  boxscore_all <- left_join(boxscore_all, ptracking.)
   return(boxscore_all)
 }
 
@@ -467,6 +456,12 @@ createLineup <- function(gameID
                          , traditional. = traditional
                          , teamlist. = teamlist
                          , playbyplay. = playbyplay) {
+
+  require(sqldf)
+  require(XML)
+  require(dplyr)
+  require(zoo)
+
   joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor","home","dateid"))
 
 
