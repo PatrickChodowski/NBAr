@@ -1,11 +1,11 @@
 Package: NBAr
 Type: Package
 Title: Get and process NBA data easily
-Version: 0.1
+Version: 0.0.4
 Date: 2016-11-05
 Author: Patrick Chodowski
-Maintainer: Patrick Chodowski <chodo20@gmail.com>
-Description: Set of functions to download and process data from NBA.com.
+Maintainer: Patrick Chodowski <chodowski.patrick@gmail.com>
+Description: Set of functions to download data from NBA.com and write it to local Postgres DB
 License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1

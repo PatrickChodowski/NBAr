@@ -1,3 +1,6 @@
+#' Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance
+#'
+#'
 #' @import RPostgreSQL
 #' @import XML
 #' @import dplyr
@@ -27,7 +30,8 @@
 #' @export getSchedule
 #' @export getNbaSchedule
 #' @export mo2Num
-#'
+#' @export getESPNpbp
+#' @export createLineup
 
 
 traditional <- NULL
@@ -45,6 +49,8 @@ misc <- NULL
 ptracking <- NULL
 eff_area <- NULL
 eff_type <- NULL
+joinedCalendar <- NULL
+espnCalendar <- NULL
 
 writePG <- function(data, dbname, schemat ="rd"){
   on.exit(dbDisconnect(con))
@@ -443,6 +449,395 @@ getNbaSchedule <- function(dt){
 }
 
 
+getESPNpbp <- function(espnID) {
+  link <-
+    paste("http://www.espn.com/nba/playbyplay?gameId=", espnID, sep = "")
+  docHtml <- htmlTreeParse(link, useInternal = TRUE)
+  pbpESPN <- readHTMLTable(docHtml, stringsAsFactors = F)
+  quarters <- unname(which(lapply(pbpESPN, nrow) > 20))
+  qrts <- pbpESPN[quarters]
+  q <- 1
+  for (q in 1:length(qrts))
+  {
+    qrts[[q]]$V2 <- q
+  }
+  game <- do.call(rbind.data.frame, qrts)
+
+  return(list(game, qrts))
+}
+
+
+createLineup <- function(gameID) {
+  joinedCalendar <- left_join(calendar, espnCalendar)
+
+
+  habr <-
+    teamlist[teamlist$TEAM_NAME == calendar[calendar$GAME_ID == gameID, "home"], "TEAM_ABBREVIATION"]
+  vabr <-
+    teamlist[teamlist$TEAM_NAME == calendar[calendar$GAME_ID == gameID, "visitor"], "TEAM_ABBREVIATION"]
+
+  s5v <-
+    traditional[is.na(traditional$START_POSITION) == F & traditional$GAME_ID == gameID &
+                  traditional$TEAM_ABBREVIATION == vabr, "PLAYER_NAME"]
+  s5h <-
+    traditional[is.na(traditional$START_POSITION) == F & traditional$GAME_ID == gameID &
+                  traditional$TEAM_ABBREVIATION == habr, "PLAYER_NAME"]
+
+  fullv <- traditional[traditional$TEAM_ABBREVIATION == vabr & traditional$GAME_ID == gameID, "PLAYER_NAME"]
+  fullh <- traditional[traditional$TEAM_ABBREVIATION == habr & traditional$GAME_ID == gameID, "PLAYER_NAME"]
+
+  #####ESPN game download
+
+  espnID <-
+    trimws(joinedCalendar[joinedCalendar$GAME_ID == gameID, "espn"])
+
+  espnGame <- getESPNpbp(espnID)
+  game <- espnGame[[1]]
+  qtrs <- espnGame[[2]]
+
+  subs <- game[grep("enters", game$V3), ]
+  subsvisitor <- subs[grep(paste(fullv, collapse = "|"), subs$V3), ]
+  subshome <- subs[grep(paste(fullh, collapse = "|"), subs$V3), ]
+
+
+  ################################################################################
+  ################################################################################
+  ####################################HOME########################################
+  ################################################################################
+  ################################################################################
+
+  who <- "HOMEDESCRIPTION"
+  linueps <-
+    playbyplay[playbyplay$EVENTMSGTYPE %in% c(8, 12) &
+                 playbyplay$GAME_ID == gameID
+               , append(who,
+                        c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
+  linueps <-
+    linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12, ]
+  linueps[, 8:12] <- NA
+  colnames(linueps)[8:12] <-
+    c("A_home", "B_home", "C_home", "D_home", "E_home")
+  linueps[, 8:12] <- as.data.frame(t(s5h), stringsAsFactors = F)
+
+  linueps$snames <-
+    unlist(lapply(
+      linueps$HOMEDESCRIPTION,
+      FUN = function(x)
+        gsub("SUB: ", "", x)
+    ))
+  linueps$snames <-
+    unlist(lapply(
+      linueps$snames,
+      FUN = function(x)
+        gsub(" FOR ", "|", x)
+    ))
+
+  subshome$fnames <-
+    unlist(lapply(
+      subshome$V3,
+      FUN = function(x)
+        gsub(" enters the game for ", "/", x)
+    ))
+
+
+  testls <-
+    sqldf(
+      "select * from linueps l left join subshome calendar on l.SCORE=calendar.V4
+      and l.EVENTMSGTYPE != 12",
+      stringsAsFactors = F,drv="SQLite"
+    )
+  tls <- 1
+  for (tls in 1:nrow(testls)) {
+    testls[tls, "V5"] <-
+      stri_count_regex(testls$fnames[tls], testls$snames[tls])
+  }
+
+  testnc <-
+    testls[testls$V5 == 2 | is.na(testls$V5) == TRUE, c(1:12, 16, 19)]
+
+
+  n <- 1
+  for (n in 2:nrow(testnc))
+  {
+    schodzi <- unlist(strsplit(testnc[n, 14], "/"))[2]
+    wchodzi <- unlist(strsplit(testnc[n, 14], "/"))[1]
+    testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
+
+    if (testnc[n, "EVENTMSGTYPE"] == 12) {
+      testnc[n, 8:12] <- NA
+
+      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12)) == 0) {
+        nextp <- nrow(testnc)
+      } else{
+        nextp <-
+          min(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12) + n)
+      }
+      fors <-
+        lapply(
+          testnc[(n + 1):nextp, 14],
+          FUN = function(x)
+            unlist(strsplit(x, "/"))[2]
+        )
+      subs <-
+        lapply(
+          testnc[(n + 1):nextp, 14],
+          FUN = function(x)
+            unlist(strsplit(x, "/"))[1]
+        )
+      fors <- na.omit(unlist(fors))
+      subs <- na.omit(unlist(subs))
+
+      period <- testnc[n, "PERIOD"]
+      known <- unique(append(fors, subs))
+
+      ###check czy ktos gra cala kwarte
+      pat <- setdiff(fullh, known)
+      unknown <- na.omit(game[game$V2 == period, "V3"])
+      matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
+      wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
+      irving <- append(known, wholeQuarterPlayed)
+
+
+      ########jezeli ktos gral cala kwarte to idzie jako pierwszy
+      if (length(wholeQuarterPlayed) > 0) {
+        cq <- 1
+        for (cq in 1:length(wholeQuarterPlayed)) {
+          testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
+
+        }
+
+      }
+      y <- 1
+      if (length(wholeQuarterPlayed) == 0) {
+        while (is.na(testnc[n, 8]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 8] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+      if (length(wholeQuarterPlayed) == 1) {
+        while (is.na(testnc[n, 9]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 9] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+      if (length(wholeQuarterPlayed) == 2) {
+        while (is.na(testnc[n, 10]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 10] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+      if (length(wholeQuarterPlayed) == 3) {
+        while (is.na(testnc[n, 11]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 11] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+      if (length(wholeQuarterPlayed) == 4) {
+        while (is.na(testnc[n, 12]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 12] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+    }
+
+  }
+
+  home <- testnc
+
+
+  ################################################################################
+  ################################################################################
+  ####################################VISITOR#####################################
+  ################################################################################
+  ################################################################################
+  who <- "VISITORDESCRIPTION"
+  linueps <-
+    playbyplay[playbyplay$EVENTMSGTYPE %in% c(8, 12) &
+                 playbyplay$GAME_ID == gameID
+               , append(who,
+                        c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
+  linueps <-
+    linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12, ]
+  linueps[, 8:12] <- NA
+  colnames(linueps)[8:12] <-
+    c("A_visit", "B_visit", "C_visit", "D_visit", "E_visit")
+  linueps[, 8:12] <- as.data.frame(t(s5v), stringsAsFactors = F)
+
+  linueps$snames <-
+    unlist(lapply(
+      linueps$VISITORDESCRIPTION,
+      FUN = function(x)
+        gsub("SUB: ", "", x)
+    ))
+  linueps$snames <-
+    unlist(lapply(
+      linueps$snames,
+      FUN = function(x)
+        gsub(" FOR ", "|", x)
+    ))
+
+  subsvisitor$fnames <-
+    unlist(lapply(
+      subsvisitor$V3,
+      FUN = function(x)
+        gsub(" enters the game for ", "/", x)
+    ))
+
+  testls <-
+    sqldf(
+      "select * from linueps l
+      left join subsvisitor calendar on l.SCORE=calendar.V4
+      and l.EVENTMSGTYPE != 12",
+      stringsAsFactors = F,drv="SQLite"
+    )
+  tls <- 1
+  for (tls in 1:nrow(testls)) {
+    testls[tls, "V5"] <-
+      stri_count_regex(testls$fnames[tls], testls$snames[tls])
+  }
+
+  testnc <-
+    testls[testls$V5 == 2 | is.na(testls$V5) == TRUE, c(1:12, 16, 19)]
+
+
+  n <- 1
+  for (n in 2:nrow(testnc))
+  {
+    schodzi <- unlist(strsplit(testnc[n, 14], "/"))[2]
+    wchodzi <- unlist(strsplit(testnc[n, 14], "/"))[1]
+    testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
+
+    if (testnc[n, "EVENTMSGTYPE"] == 12) {
+      testnc[n, 8:12] <- NA
+
+      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12)) == 0) {
+        nextp <- nrow(testnc)
+      } else{
+        nextp <-
+          min(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12) + n)
+      }
+      fors <-
+        lapply(
+          testnc[(n + 1):nextp, 14],
+          FUN = function(x)
+            unlist(strsplit(x, "/"))[2]
+        )
+      subs <-
+        lapply(
+          testnc[(n + 1):nextp, 14],
+          FUN = function(x)
+            unlist(strsplit(x, "/"))[1]
+        )
+      fors <- na.omit(unlist(fors))
+      subs <- na.omit(unlist(subs))
+
+      period <- testnc[n, "PERIOD"]
+      known <- unique(append(fors, subs))
+
+      ###check czy ktos gra cala kwarte
+      pat <- setdiff(fullv, known)
+      unknown <- na.omit(game[game$V2 == period, "V3"])
+      matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
+      wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
+      irving <- append(known, wholeQuarterPlayed)
+
+
+      ########jezeli ktos gral cala kwarte to idzie jako pierwszy
+      if (length(wholeQuarterPlayed) > 0) {
+        cq <- 1
+        for (cq in 1:length(wholeQuarterPlayed)) {
+          testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
+
+        }
+
+      }
+      y <- 1
+      if (length(wholeQuarterPlayed) == 0) {
+        while (is.na(testnc[n, 8]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 8] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+      if (length(wholeQuarterPlayed) == 1) {
+        while (is.na(testnc[n, 9]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 9] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+      if (length(wholeQuarterPlayed) == 2) {
+        while (is.na(testnc[n, 10]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 10] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+      if (length(wholeQuarterPlayed) == 3) {
+        while (is.na(testnc[n, 11]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 11] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+      if (length(wholeQuarterPlayed) == 4) {
+        while (is.na(testnc[n, 12]) == TRUE)
+        {
+          testnc[n:nrow(testnc), 12] <-
+            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+          y <- y + 1
+        }
+      }
+
+    }
+
+  }
+
+  visit <- testnc
+
+
+  ################################################################################
+  ################################################################################
+  ####################################JOIN VISIT I HOME###########################
+  ################################################################################
+  ################################################################################
+
+  ptest <-
+    playbyplay[playbyplay$GAME_ID == gameID, ]
+
+  ptest <-
+    left_join(ptest, home[, c(1, 4, 8:12)], by = c("EVENTNUM", "HOMEDESCRIPTION"))
+  ptest <-
+    left_join(ptest, visit[, c(1, 4, 8:12)], by = c("EVENTNUM", "VISITORDESCRIPTION"))
+  ptest[, 15:24] <- apply(ptest[, 15:24], 2, na.locf)
+  if (is.na(ptest[1, "SCORE"]) == TRUE) {
+    ptest[1, c("SCORE", "SCOREMARGIN")] = c("0 - 0", 0)
+    ptest[, 11:12] <- apply(ptest[, 11:12], 2, na.locf)
+
+  }
+
+  return(ptest)
+
+}
 
 
 
