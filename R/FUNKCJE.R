@@ -467,7 +467,7 @@ createLineup <- function(gameID
                          , traditional = traditional
                          , teamlist = teamlist
                          , playbyplay = playbyplay) {
-  joinedCalendar <- left_join(calendar, espnCalendar, by = c("visit","home","dateid"))
+  joinedCalendar <- left_join(calendar, espnCalendar, by = c("visitor","home","dateid"))
 
 
   habr <-
