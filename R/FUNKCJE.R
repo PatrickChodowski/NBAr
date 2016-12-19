@@ -534,12 +534,26 @@ createLineup <- function(gameID
     ))
 
 
-  testls <-
-    sqldf(
-      "select * from linueps l left join subshome calendar on l.SCORE=calendar.V4
-      and l.EVENTMSGTYPE != 12",
-      stringsAsFactors = F,drv="SQLite"
-    )
+  subshome$MINS <- as.numeric(gsub("\\:.*","",subshome$V1))
+  subshome$SECS <- as.numeric(gsub("^.*\\:","",subshome$V1))
+  subshome$PERIOD <- as.numeric(subshome$V2)
+
+  subshome <- subshome[with(subshome, order(PERIOD, -MINS, -SECS)), ]
+  subshome$id <- 1:nrow(subshome)
+
+
+  linueps <- linueps[with(linueps, order(EVENTMSGTYPE,PERIOD, -MINS, -SECS)), ]
+  linueps$id <- 1:nrow(linueps)
+  linueps$id<- ifelse(is.na(linueps$snames) == TRUE, NA, linueps$id)
+
+
+
+  testls <- sqldf("select * from linueps l left join subshome s on l.id=s.id",
+                  stringsAsFactors = F, drv = "SQLite")
+  testls <- testls[, -c(14,21,22,23,24)]
+  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)), ]
+
+
   tls <- 1
   for (tls in 1:nrow(testls)) {
     testls[tls, "V5"] <-
@@ -611,7 +625,7 @@ createLineup <- function(gameID
         }
       }
 
-      if (length(wholeQuarterPlayed) == 1) {
+      if (length(wholeQuarterPlayed) <= 1) {
         while (is.na(testnc[n, 9]) == TRUE)
         {
           testnc[n:nrow(testnc), 9] <-
@@ -620,7 +634,7 @@ createLineup <- function(gameID
         }
       }
 
-      if (length(wholeQuarterPlayed) == 2) {
+      if (length(wholeQuarterPlayed) <= 2) {
         while (is.na(testnc[n, 10]) == TRUE)
         {
           testnc[n:nrow(testnc), 10] <-
@@ -628,7 +642,7 @@ createLineup <- function(gameID
           y <- y + 1
         }
       }
-      if (length(wholeQuarterPlayed) == 3) {
+      if (length(wholeQuarterPlayed) <= 3) {
         while (is.na(testnc[n, 11]) == TRUE)
         {
           testnc[n:nrow(testnc), 11] <-
@@ -636,7 +650,7 @@ createLineup <- function(gameID
           y <- y + 1
         }
       }
-      if (length(wholeQuarterPlayed) == 4) {
+      if (length(wholeQuarterPlayed) <= 4) {
         while (is.na(testnc[n, 12]) == TRUE)
         {
           testnc[n:nrow(testnc), 12] <-
@@ -690,13 +704,25 @@ createLineup <- function(gameID
         gsub(" enters the game for ", "/", x)
     ))
 
-  testls <-
-    sqldf(
-      "select * from linueps l
-      left join subsvisitor calendar on l.SCORE=calendar.V4
-      and l.EVENTMSGTYPE != 12",
-      stringsAsFactors = F,drv="SQLite"
-    )
+
+  subsvisitor$MINS <- as.numeric(gsub("\\:.*","",subsvisitor$V1))
+  subsvisitor$SECS <- as.numeric(gsub("^.*\\:","",subsvisitor$V1))
+  subsvisitor$PERIOD <- as.numeric(subsvisitor$V2)
+
+  subsvisitor <- subsvisitor[with(subsvisitor, order(PERIOD, -MINS, -SECS)), ]
+  subsvisitor$id <- 1:nrow(subsvisitor)
+
+
+  linueps <- linueps[with(linueps, order(EVENTMSGTYPE,PERIOD, -MINS, -SECS)), ]
+  linueps$id <- 1:nrow(linueps)
+  linueps$id<- ifelse(is.na(linueps$snames) == TRUE, NA, linueps$id)
+
+
+
+  testls <- sqldf("select * from linueps l left join subsvisitor s on l.id=s.id",
+                  stringsAsFactors = F, drv = "SQLite")
+  testls <- testls[, -c(14,21,22,23,24)]
+  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)), ]
   tls <- 1
   for (tls in 1:nrow(testls)) {
     testls[tls, "V5"] <-
@@ -768,7 +794,7 @@ createLineup <- function(gameID
         }
       }
 
-      if (length(wholeQuarterPlayed) == 1) {
+      if (length(wholeQuarterPlayed) <= 1) {
         while (is.na(testnc[n, 9]) == TRUE)
         {
           testnc[n:nrow(testnc), 9] <-
@@ -777,7 +803,7 @@ createLineup <- function(gameID
         }
       }
 
-      if (length(wholeQuarterPlayed) == 2) {
+      if (length(wholeQuarterPlayed) <= 2) {
         while (is.na(testnc[n, 10]) == TRUE)
         {
           testnc[n:nrow(testnc), 10] <-
@@ -785,7 +811,7 @@ createLineup <- function(gameID
           y <- y + 1
         }
       }
-      if (length(wholeQuarterPlayed) == 3) {
+      if (length(wholeQuarterPlayed) <= 3) {
         while (is.na(testnc[n, 11]) == TRUE)
         {
           testnc[n:nrow(testnc), 11] <-
@@ -793,7 +819,7 @@ createLineup <- function(gameID
           y <- y + 1
         }
       }
-      if (length(wholeQuarterPlayed) == 4) {
+      if (length(wholeQuarterPlayed) <= 4) {
         while (is.na(testnc[n, 12]) == TRUE)
         {
           testnc[n:nrow(testnc), 12] <-
