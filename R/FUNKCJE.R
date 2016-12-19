@@ -487,6 +487,9 @@ createLineup <- function(gameID
 
   espnGame <- getESPNpbp(espnID)
   game <- espnGame[[1]]
+
+  game$V3 <- gsub("Frank Kaminsky III","Frank Kaminsky",game$V3)
+
   qtrs <- espnGame[[2]]
 
   subs <- game[grep("enters", game$V3), ]
