@@ -11,6 +11,8 @@
 #' @import stringr
 #' @import zoo
 #' @import sqldf
+#' @importFrom data.table frank
+#' @importFrom data.table as.data.table
 #' @export writePG
 #' @export getLastGame
 #' @export getDoneGames
@@ -461,6 +463,7 @@ createLineup <- function(gameID
   require(XML)
   require(dplyr)
   require(zoo)
+  require(data.table)
   joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor",
                                                                "home", "dateid"))
   habr <- teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID ==
@@ -482,9 +485,9 @@ createLineup <- function(gameID
   espnGame <- getESPNpbp(espnID)
   game <- espnGame[[1]]
 
-  game$MINS <- as.numeric(gsub("\\:.*", "", game$V1))
-  game$SECS <- as.numeric(gsub("^.*\\:", "", game$V1))
-  game$PERIOD <- as.numeric(game$V2)
+  game$MINS <- suppressWarnings(as.numeric(gsub("\\:.*", "", game$V1)))
+  game$SECS <- suppressWarnings(as.numeric(gsub("^.*\\:", "", game$V1)))
+  game$PERIOD <- suppressWarnings(as.numeric(game$V2))
 
   haaa <- data.table::as.data.table(game[game$V1 != "time",])
   haaa[,playID:=data.table::frank(haaa, PERIOD, -MINS,-SECS, ties.method="min")]
