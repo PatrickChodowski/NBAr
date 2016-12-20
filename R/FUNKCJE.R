@@ -461,403 +461,375 @@ createLineup <- function(gameID
   require(XML)
   require(dplyr)
   require(zoo)
-
-  joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor","home","dateid"))
-
-
-  habr <-
-    teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID == gameID, "home"], "TEAM_ABBREVIATION"]
-  vabr <-
-    teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID == gameID, "visitor"], "TEAM_ABBREVIATION"]
-
-  s5v <-
-    traditional.[is.na(traditional$START_POSITION) == F & traditional.$GAME_ID == gameID &
-                  traditional$TEAM_ABBREVIATION == vabr, "PLAYER_NAME"]
-  s5h <-
-    traditional.[is.na(traditional.$START_POSITION) == F & traditional.$GAME_ID == gameID &
-                  traditional.$TEAM_ABBREVIATION == habr, "PLAYER_NAME"]
-
-  fullv <- traditional.[traditional.$TEAM_ABBREVIATION == vabr & traditional.$GAME_ID == gameID, "PLAYER_NAME"]
-  fullh <- traditional.[traditional.$TEAM_ABBREVIATION == habr & traditional.$GAME_ID == gameID, "PLAYER_NAME"]
-
-  #####ESPN game download
-
-  espnID <-
-    trimws(joinedCalendar[joinedCalendar$GAME_ID == gameID, "espn"])
-
+  joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor",
+                                                               "home", "dateid"))
+  habr <- teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID ==
+                                                       gameID, "home"], "TEAM_ABBREVIATION"]
+  vabr <- teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID ==
+                                                       gameID, "visitor"], "TEAM_ABBREVIATION"]
+  s5v <- traditional.[is.na(traditional$START_POSITION) ==
+                        F & traditional.$GAME_ID == gameID & traditional$TEAM_ABBREVIATION ==
+                        vabr, "PLAYER_NAME"]
+  s5h <- traditional.[is.na(traditional.$START_POSITION) ==
+                        F & traditional.$GAME_ID == gameID & traditional.$TEAM_ABBREVIATION ==
+                        habr, "PLAYER_NAME"]
+  fullv <- traditional.[traditional.$TEAM_ABBREVIATION == vabr &
+                          traditional.$GAME_ID == gameID, "PLAYER_NAME"]
+  fullh <- traditional.[traditional.$TEAM_ABBREVIATION == habr &
+                          traditional.$GAME_ID == gameID, "PLAYER_NAME"]
+  espnID <- trimws(joinedCalendar[joinedCalendar$GAME_ID ==
+                                    gameID, "espn"])
   espnGame <- getESPNpbp(espnID)
   game <- espnGame[[1]]
 
+  game$MINS <- as.numeric(gsub("\\:.*", "", game$V1))
+  game$SECS <- as.numeric(gsub("^.*\\:", "", game$V1))
+  game$PERIOD <- as.numeric(game$V2)
+
+  haaa <- data.table::as.data.table(game[game$V1 != "time",])
+  haaa[,playID:=data.table::frank(haaa, PERIOD, -MINS,-SECS, ties.method="min")]
+
+  haaa <- haaa[with(haaa, order(playID)),]
+  game <- left_join(game,haaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD"))
+
+
+  ######GET AND DIVIDE ESPN
+
+  #qtrs <- espnGame[[2]]
   game$V3 <- gsub("Frank Kaminsky III","Frank Kaminsky",game$V3)
+  subso <- game[grep("enters", game$V3), ]
+  subsvisitor <- subso[grep(paste(fullv, collapse = "|"), subso$V3), ]
+  subshome <- subso[grep(paste(fullh, collapse = "|"), subso$V3), ]
 
-  qtrs <- espnGame[[2]]
-
-  subs <- game[grep("enters", game$V3), ]
-  subsvisitor <- subs[grep(paste(fullv, collapse = "|"), subs$V3), ]
-  subshome <- subs[grep(paste(fullh, collapse = "|"), subs$V3), ]
+  #######PREPARE SUBSHOME/SUBSVISITOR
+  subshome$fnames <- unlist(lapply(subshome$V3, FUN = function(x) gsub(" enters the game for ", "/", x)))
+  subsvisitor$fnames <- unlist(lapply(subsvisitor$V3, FUN = function(x) gsub(" enters the game for ", "/", x)))
 
 
-  ################################################################################
-  ################################################################################
-  ####################################HOME########################################
-  ################################################################################
-  ################################################################################
+  gaaa <- data.table::as.data.table(subshome)
+  gaaa[,timeID:=data.table::frank(gaaa, PERIOD, -MINS,-SECS, ties.method="min")]
 
+  gaaa <- gaaa[with(gaaa, order(timeID)),]
+  subshome <- left_join(subshome,gaaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD","playID","fnames"))
+
+
+  faaa <- data.table::as.data.table(subsvisitor)
+  faaa[,timeID:=data.table::frank(faaa, PERIOD, -MINS,-SECS, ties.method="min")]
+
+  faaa <- faaa[with(faaa, order(timeID)),]
+  subsvisitor <- left_join(subsvisitor,faaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD","playID","fnames"))
+
+
+
+
+  ###### PREPARE PLAYBYPLAY
   who <- "HOMEDESCRIPTION"
-  linueps <-
-    playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8, 12) &
-                 playbyplay.$GAME_ID == gameID
-               , append(who,
-                        c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
-  linueps <-
-    linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12, ]
+  linueps <- playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8,9,
+                                                       12) & playbyplay.$GAME_ID == gameID, append(who, c("EVENTMSGTYPE",
+                                                                                                         "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
+  linueps <- linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12 | linueps$EVENTMSGTYPE == 9, ]
+
   linueps[, 8:12] <- NA
-  colnames(linueps)[8:12] <-
-    c("A_home", "B_home", "C_home", "D_home", "E_home")
+  colnames(linueps)[8:12] <- c("A_home", "B_home", "C_home",
+                               "D_home", "E_home")
   linueps[, 8:12] <- as.data.frame(t(s5h), stringsAsFactors = F)
+  linueps$snames <- unlist(lapply(linueps$HOMEDESCRIPTION,
+                                  FUN = function(x) gsub("SUB: ", "", x)))
+  linueps$snames <- unlist(lapply(linueps$snames, FUN = function(x) gsub(" FOR ",
+                                                                         "|", x)))
+  #####poki co same zmiany
+  daaa <- data.table::as.data.table(linueps[linueps$EVENTMSGTYPE == 8,])
+  daaa[,timeID:=data.table::frank(daaa, PERIOD, -MINS,-SECS, ties.method="min")]
 
-  linueps$snames <-
-    unlist(lapply(
-      linueps$HOMEDESCRIPTION,
-      FUN = function(x)
-        gsub("SUB: ", "", x)
-    ))
-  linueps$snames <-
-    unlist(lapply(
-      linueps$snames,
-      FUN = function(x)
-        gsub(" FOR ", "|", x)
-    ))
-
-  subshome$fnames <-
-    unlist(lapply(
-      subshome$V3,
-      FUN = function(x)
-        gsub(" enters the game for ", "/", x)
-    ))
-
-
-  subshome$MINS <- as.numeric(gsub("\\:.*","",subshome$V1))
-  subshome$SECS <- as.numeric(gsub("^.*\\:","",subshome$V1))
-  subshome$PERIOD <- as.numeric(subshome$V2)
-
-  subshome <- subshome[with(subshome, order(PERIOD, -MINS, -SECS)), ]
-  subshome$id <- 1:nrow(subshome)
-
-
-  linueps <- linueps[with(linueps, order(EVENTMSGTYPE,PERIOD, -MINS, -SECS)), ]
-  linueps$id <- 1:nrow(linueps)
-  linueps$id<- ifelse(is.na(linueps$snames) == TRUE, NA, linueps$id)
+  daaa <- daaa[with(daaa, order(timeID)),]
+  linueps <- left_join(linueps,daaa,by = c("HOMEDESCRIPTION", "EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE", "A_home", "B_home", "C_home", "D_home", "E_home", "snames"))
 
 
 
-  testls <- sqldf("select * from linueps l left join subshome s on l.id=s.id",
+
+  #########################JOIN SUBS AND LINEUPS
+
+  testls <- sqldf("select * from linueps l left join subshome s on l.timeID=s.timeID",
                   stringsAsFactors = F, drv = "SQLite")
-  testls <- testls[, -c(14,21,22,23,24)]
-  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)), ]
 
-
+  testls <- testls[, -c(14, 20:22)]
+  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)),
+                   ]
   tls <- 1
   for (tls in 1:nrow(testls)) {
-    testls[tls, "V5"] <-
-      stri_count_regex(testls$fnames[tls], testls$snames[tls])
+    testls[tls, "V5"] <- stri_count_regex(testls$fnames[tls],
+                                          testls$snames[tls])
   }
+  testnc <- testls[testls$V5 == 2 | is.na(testls$V5) == TRUE,
+                   c(1:12, 16,19,20,21)]
 
-  testnc <-
-    testls[testls$V5 == 2 | is.na(testls$V5) == TRUE, c(1:12, 16, 19)]
-
-
+  ########################LINEUPS IN MAKING
   n <- 1
-  for (n in 2:nrow(testnc))
-  {
-    schodzi <- unlist(strsplit(testnc[n, 14], "/"))[2]
-    wchodzi <- unlist(strsplit(testnc[n, 14], "/"))[1]
+  for (n in 2:nrow(testnc)) {
+    schodzi <- unlist(strsplit(testnc[n, 15], "/"))[2]
+    wchodzi <- unlist(strsplit(testnc[n, 15], "/"))[1]
     testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
 
-    if (testnc[n, "EVENTMSGTYPE"] == 12) {
+    if (testnc[n, "EVENTMSGTYPE"] %in% c(12,9)) {
       testnc[n, 8:12] <- NA
-
-      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12)) == 0) {
+      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] %in% c(12,9))) == 0) {
         nextp <- nrow(testnc)
-      } else{
-        nextp <-
-          min(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12) + n)
+      } else {
+        nextp <- min(which(testnc[n + 1:nrow(testnc),  "EVENTMSGTYPE"] %in% c(12,9)) + n)
       }
-      fors <-
-        lapply(
-          testnc[(n + 1):nextp, 14],
-          FUN = function(x)
-            unlist(strsplit(x, "/"))[2]
-        )
-      subs <-
-        lapply(
-          testnc[(n + 1):nextp, 14],
-          FUN = function(x)
-            unlist(strsplit(x, "/"))[1]
-        )
+      fors <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
+                                                                                  "/"))[2])
+      subs <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
+                                                                                  "/"))[1])
       fors <- na.omit(unlist(fors))
       subs <- na.omit(unlist(subs))
 
+      NonNAindex <- which(!is.na(testnc[n:nrow(testnc),"playID"]))+n
+      firstNonNA <- min(NonNAindex)
+
+      playSTART <- testnc[firstNonNA,"playID"]
+      NonNAindex <- which(!is.na(testnc[nextp:nrow(testnc),"playID"]))+nextp-1
+      firstNonNA <- min(NonNAindex)
+
+      playSTOP <- testnc[firstNonNA,"playID"]
+
+
+
+      unknown <- na.omit(game[game$playID > playSTART & game$playID < playSTOP, "V3"])
+
+
       period <- testnc[n, "PERIOD"]
       known <- unique(append(fors, subs))
-
-      ###check czy ktos gra cala kwarte
       pat <- setdiff(fullh, known)
-      unknown <- na.omit(game[game$V2 == period, "V3"])
+
+
       matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
-      wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
-      irving <- append(known, wholeQuarterPlayed)
+
+      if (class(matches) != "list"){
+        wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
+        irving <- append(known, wholeQuarterPlayed)
+      }else{
+        wholeQuarterPlayed <- as.character()
+        irving <- known
+      }
 
 
-      ########jezeli ktos gral cala kwarte to idzie jako pierwszy
+
+      if(length(irving) < 5){
+        previousRow <- unname(testnc[n-1,8:12])
+        wholeQuarterPlayed <- setdiff(previousRow, fors)
+      }
+
+
       if (length(wholeQuarterPlayed) > 0) {
         cq <- 1
         for (cq in 1:length(wholeQuarterPlayed)) {
           testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
-
         }
-
       }
       y <- 1
       if (length(wholeQuarterPlayed) == 0) {
-        while (is.na(testnc[n, 8]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 8] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 8]) == TRUE) {
+          testnc[n:nrow(testnc), 8] <- ifelse(!unlist(fors[y]) %in%
+                                                subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
-
       if (length(wholeQuarterPlayed) <= 1) {
-        while (is.na(testnc[n, 9]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 9] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 9]) == TRUE) {
+          testnc[n:nrow(testnc), 9] <- ifelse(!unlist(fors[y]) %in%
+                                                subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
-
       if (length(wholeQuarterPlayed) <= 2) {
-        while (is.na(testnc[n, 10]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 10] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 10]) == TRUE) {
+          testnc[n:nrow(testnc), 10] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
       if (length(wholeQuarterPlayed) <= 3) {
-        while (is.na(testnc[n, 11]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 11] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 11]) == TRUE) {
+          testnc[n:nrow(testnc), 11] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
       if (length(wholeQuarterPlayed) <= 4) {
-        while (is.na(testnc[n, 12]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 12] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 12]) == TRUE) {
+          testnc[n:nrow(testnc), 12] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
+          if (y > 15){
+
+            testnc[n:nrow(testnc), 12] <- setdiff(previousRow,testnc[n,8:11])
+          }
         }
       }
-
     }
-
   }
-
   home <- testnc
 
 
-  ################################################################################
-  ################################################################################
-  ####################################VISITOR#####################################
-  ################################################################################
-  ################################################################################
   who <- "VISITORDESCRIPTION"
-  linueps <-
-    playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8, 12) &
-                 playbyplay.$GAME_ID == gameID
-               , append(who,
-                        c("EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
-  linueps <-
-    linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12, ]
+  linueps <- playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8,9,
+                                                       12) & playbyplay.$GAME_ID == gameID, append(who, c("EVENTMSGTYPE",
+                                                                                                         "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
+  linueps <- linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12 | linueps$EVENTMSGTYPE == 9, ]
+
   linueps[, 8:12] <- NA
-  colnames(linueps)[8:12] <-
-    c("A_visit", "B_visit", "C_visit", "D_visit", "E_visit")
+  colnames(linueps)[8:12] <- c("A_visit", "B_visit", "C_visit",
+                               "D_visit", "E_visit")
   linueps[, 8:12] <- as.data.frame(t(s5v), stringsAsFactors = F)
+  linueps$snames <- unlist(lapply(linueps$VISITORDESCRIPTION,
+                                  FUN = function(x) gsub("SUB: ", "", x)))
+  linueps$snames <- unlist(lapply(linueps$snames, FUN = function(x) gsub(" FOR ",
+                                                                         "|", x)))
+  #####poki co same zmiany
+  daaa <- data.table::as.data.table(linueps[linueps$EVENTMSGTYPE == 8,])
+  daaa[,timeID:=data.table::frank(daaa, PERIOD, -MINS,-SECS, ties.method="min")]
 
-  linueps$snames <-
-    unlist(lapply(
-      linueps$VISITORDESCRIPTION,
-      FUN = function(x)
-        gsub("SUB: ", "", x)
-    ))
-  linueps$snames <-
-    unlist(lapply(
-      linueps$snames,
-      FUN = function(x)
-        gsub(" FOR ", "|", x)
-    ))
-
-  subsvisitor$fnames <-
-    unlist(lapply(
-      subsvisitor$V3,
-      FUN = function(x)
-        gsub(" enters the game for ", "/", x)
-    ))
-
-
-  subsvisitor$MINS <- as.numeric(gsub("\\:.*","",subsvisitor$V1))
-  subsvisitor$SECS <- as.numeric(gsub("^.*\\:","",subsvisitor$V1))
-  subsvisitor$PERIOD <- as.numeric(subsvisitor$V2)
-
-  subsvisitor <- subsvisitor[with(subsvisitor, order(PERIOD, -MINS, -SECS)), ]
-  subsvisitor$id <- 1:nrow(subsvisitor)
-
-
-  linueps <- linueps[with(linueps, order(EVENTMSGTYPE,PERIOD, -MINS, -SECS)), ]
-  linueps$id <- 1:nrow(linueps)
-  linueps$id<- ifelse(is.na(linueps$snames) == TRUE, NA, linueps$id)
+  daaa <- daaa[with(daaa, order(timeID)),]
+  linueps <- left_join(linueps,daaa,by = c("VISITORDESCRIPTION", "EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE", "A_visit", "B_visit", "C_visit","D_visit", "E_visit", "snames"))
 
 
 
-  testls <- sqldf("select * from linueps l left join subsvisitor s on l.id=s.id",
+
+  #########################JOIN SUBS AND LINEUPS
+
+  testls <- sqldf("select * from linueps l left join subsvisitor s on l.timeID=s.timeID",
                   stringsAsFactors = F, drv = "SQLite")
-  testls <- testls[, -c(14,21,22,23,24)]
-  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)), ]
+
+  testls <- testls[, -c(14, 20:22)]
+  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)),
+                   ]
   tls <- 1
   for (tls in 1:nrow(testls)) {
-    testls[tls, "V5"] <-
-      stri_count_regex(testls$fnames[tls], testls$snames[tls])
+    testls[tls, "V5"] <- stri_count_regex(testls$fnames[tls],
+                                          testls$snames[tls])
   }
+  testnc <- testls[testls$V5 == 2 | is.na(testls$V5) == TRUE,
+                   c(1:12, 16,19,20,21)]
 
-  testnc <-
-    testls[testls$V5 == 2 | is.na(testls$V5) == TRUE, c(1:12, 16, 19)]
-
-
+  ########################LINEUPS IN MAKING
   n <- 1
-  for (n in 2:nrow(testnc))
-  {
-    schodzi <- unlist(strsplit(testnc[n, 14], "/"))[2]
-    wchodzi <- unlist(strsplit(testnc[n, 14], "/"))[1]
+  for (n in 2:nrow(testnc)) {
+    schodzi <- unlist(strsplit(testnc[n, 15], "/"))[2]
+    wchodzi <- unlist(strsplit(testnc[n, 15], "/"))[1]
     testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
 
-    if (testnc[n, "EVENTMSGTYPE"] == 12) {
+    if (testnc[n, "EVENTMSGTYPE"] %in% c(12,9)) {
       testnc[n, 8:12] <- NA
-
-      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12)) == 0) {
+      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] %in% c(12,9))) == 0) {
         nextp <- nrow(testnc)
-      } else{
-        nextp <-
-          min(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] == 12) + n)
+      } else {
+        nextp <- min(which(testnc[n + 1:nrow(testnc),  "EVENTMSGTYPE"] %in% c(12,9)) + n)
       }
-      fors <-
-        lapply(
-          testnc[(n + 1):nextp, 14],
-          FUN = function(x)
-            unlist(strsplit(x, "/"))[2]
-        )
-      subs <-
-        lapply(
-          testnc[(n + 1):nextp, 14],
-          FUN = function(x)
-            unlist(strsplit(x, "/"))[1]
-        )
+      fors <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
+                                                                                  "/"))[2])
+      subs <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
+                                                                                  "/"))[1])
       fors <- na.omit(unlist(fors))
       subs <- na.omit(unlist(subs))
 
+      NonNAindex <- which(!is.na(testnc[n:nrow(testnc),"playID"]))+n
+      firstNonNA <- min(NonNAindex)
+
+      playSTART <- testnc[firstNonNA,"playID"]
+      NonNAindex <- which(!is.na(testnc[nextp:nrow(testnc),"playID"]))+nextp-1
+      firstNonNA <- min(NonNAindex)
+
+      playSTOP <- testnc[firstNonNA,"playID"]
+
+
+
+      unknown <- na.omit(game[game$playID > playSTART & game$playID < playSTOP, "V3"])
+
+
       period <- testnc[n, "PERIOD"]
       known <- unique(append(fors, subs))
-
-      ###check czy ktos gra cala kwarte
       pat <- setdiff(fullv, known)
-      unknown <- na.omit(game[game$V2 == period, "V3"])
+
+
       matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
-      wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
-      irving <- append(known, wholeQuarterPlayed)
+
+      if (class(matches) != "list"){
+        wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
+        irving <- append(known, wholeQuarterPlayed)
+      }else{
+        wholeQuarterPlayed <- as.character()
+        irving <- known
+      }
 
 
-      ########jezeli ktos gral cala kwarte to idzie jako pierwszy
+
+      if(length(irving) < 5){
+        previousRow <- unname(testnc[n-1,8:12])
+        wholeQuarterPlayed <- setdiff(previousRow, fors)
+      }
+
+
       if (length(wholeQuarterPlayed) > 0) {
         cq <- 1
         for (cq in 1:length(wholeQuarterPlayed)) {
           testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
-
         }
-
       }
       y <- 1
       if (length(wholeQuarterPlayed) == 0) {
-        while (is.na(testnc[n, 8]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 8] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 8]) == TRUE) {
+          testnc[n:nrow(testnc), 8] <- ifelse(!unlist(fors[y]) %in%
+                                                subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
-
       if (length(wholeQuarterPlayed) <= 1) {
-        while (is.na(testnc[n, 9]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 9] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 9]) == TRUE) {
+          testnc[n:nrow(testnc), 9] <- ifelse(!unlist(fors[y]) %in%
+                                                subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
-
       if (length(wholeQuarterPlayed) <= 2) {
-        while (is.na(testnc[n, 10]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 10] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 10]) == TRUE) {
+          testnc[n:nrow(testnc), 10] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
       if (length(wholeQuarterPlayed) <= 3) {
-        while (is.na(testnc[n, 11]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 11] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 11]) == TRUE) {
+          testnc[n:nrow(testnc), 11] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
         }
       }
       if (length(wholeQuarterPlayed) <= 4) {
-        while (is.na(testnc[n, 12]) == TRUE)
-        {
-          testnc[n:nrow(testnc), 12] <-
-            ifelse(!unlist(fors[y]) %in% subs[1:y - 1], unlist(fors[y]), NA)
+        while (is.na(testnc[n, 12]) == TRUE) {
+          testnc[n:nrow(testnc), 12] <- ifelse(!unlist(fors[y]) %in%
+                                                 subs[1:y - 1], unlist(fors[y]), NA)
           y <- y + 1
+          if (y > 15){
+
+            testnc[n:nrow(testnc), 12] <- setdiff(previousRow,testnc[n,8:11])
+          }
         }
       }
-
     }
-
   }
 
   visit <- testnc
-
-
-  ################################################################################
-  ################################################################################
-  ####################################JOIN VISIT I HOME###########################
-  ################################################################################
-  ################################################################################
-
-  ptest <-
-    playbyplay.[playbyplay.$GAME_ID == gameID, ]
-
-  ptest <-
-    left_join(ptest, home[, c(1, 4, 8:12)], by = c("EVENTNUM", "HOMEDESCRIPTION"))
-  ptest <-
-    left_join(ptest, visit[, c(1, 4, 8:12)], by = c("EVENTNUM", "VISITORDESCRIPTION"))
+  ptest <- playbyplay.[playbyplay.$GAME_ID == gameID, ]
+  ptest <- left_join(ptest, home[, c(1, 4, 8:12)], by = c("EVENTNUM",
+                                                          "HOMEDESCRIPTION"))
+  ptest <- left_join(ptest, visit[, c(1, 4, 8:12)], by = c("EVENTNUM",
+                                                           "VISITORDESCRIPTION"))
   ptest[, 15:24] <- apply(ptest[, 15:24], 2, na.locf)
   if (is.na(ptest[1, "SCORE"]) == TRUE) {
     ptest[1, c("SCORE", "SCOREMARGIN")] = c("0 - 0", 0)
     ptest[, 11:12] <- apply(ptest[, 11:12], 2, na.locf)
-
   }
-
   return(ptest)
 
 }
