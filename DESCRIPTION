@@ -8,8 +8,7 @@ Maintainer: Patrick Chodowski <chodowski.patrick@gmail.com>
 Description: Set of functions to download data from NBA.com and write it to local Postgres DB
 License: GPL-2
 LazyData: TRUE
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Imports:
   RPostgreSQL (>= 0.4.0),
   XML  (>= 3.98.0),
-

@@ -32,103 +32,117 @@
 #' @export getPlaytypeTeam
 #' @export getSchedule
 #' @export getNbaSchedule
-#' @export mo2Num
-#' @export getESPNpbp
-#' @export createLineup
 
 
-writePG <- function(data, dbname, schemat ="rd"){
+
+writePG <- function(dataset, dbname, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres"){
   on.exit(dbDisconnect(con))
+
   tryCatch({
-    dane<- readRDS(data)
-    name <- gsub(".//nba16//","",data)
-    name <- gsub(".RDS","",name)
+
+    if(grepl(".RDS",dataset, ignore.case = T) == T){
+
+    data<- readRDS(dataset)
+    name <- gsub(".RDS","",dataset)
+
+    } else {
+
+      data <- dataset
+      name <- get(dataset)
+
+    }
     require(RPostgreSQL)
     drv <- dbDriver("PostgreSQL")
-    con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
-    if(name %in% c("traditional","advanced","misc","ptracking","playbyplay")){
-      dbWriteTable(con, c(schemat, name), value = dane, overwrite = FALSE, row.names = FALSE, append = T)
+    con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
 
+    if(name %in% c("traditional","advanced","misc","ptracking","playbyplay")){
+      dbWriteTable(con, c(schema, dbname), value = data, overwrite = FALSE, row.names = FALSE, append = T)
     }else{
-      dbWriteTable(con, c(schemat, name), value = dane, overwrite = T, row.names = FALSE, append = F)
+      dbWriteTable(con, c(schema, dbname), value = data, overwrite = T, row.names = FALSE, append = F)
     }
-    if(name == "shotchart"){
-      dbSendQuery(con, paste("CREATE UNIQUE INDEX uix_shc ON rd.shotchart
-                             USING btree
-                             (\"GAME_ID\" COLLATE pg_catalog.\"default\",
-                             \"PLAYER_ID\" COLLATE pg_catalog.\"default\",
-                             \"GAME_EVENT_ID\" COLLATE pg_catalog.\"default\");",sep=""))
-    }
+
   },error = function(err){
     print(paste("No table", sep=" "))
   })
 }
 
-getLastGame <- function(dbname, date = Sys.Date()-1){
+
+
+getLastGame <- function(dbname, date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
-  query <- paste("select max(\"GAME_ID\") from rd.calendar where date = \'",date,"\'",sep="")
+  con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
+  query <- paste("select max( \'",gamecol,"\') from ",schema,".",calendartbl," where date = \'",date,"\'",sep="")
   return(as.character(dbGetQuery(con, query)))
-
 }
 
-getDoneGames <- function(dbname,date = Sys.Date()-1){
+
+
+getDoneGames <- function(dbname,date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
-  query <- paste("select \"GAME_ID\" from rd.calendar where date <= \'",date,"\'",sep="")
+  con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
+  query <- paste("select \'",gamecol,"\' from ",schema,".",calendartbl," where date = \'",date,"\'",sep="")
   return(as.character(unlist(as.list(dbGetQuery(con, query)))))
 }
 
-checkActual <- function(table, dbname, date = Sys.Date()-1){
+
+
+checkActual <- function(table, dbname, date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
-  query <- paste("select distinct \"GAME_ID\" from rd.",table,sep="")
-  #return(as.character(unlist(as.list(dbGetQuery(con, query)))))
+  con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
+  query <- paste("select distinct \'",gamecol,"\' from ",schema,".",table,sep="")
+
   gms <- as.character(unlist(as.list(dbGetQuery(con, query))))
   rez <- match(getDoneGames(dbname = dbname),gms)
   if(any(is.na(rez) == T)){
-    return(getDoneGames(dbname = dbname)[is.na(rez) == T])
+    return(getDoneGames(dbname = dbname, date = date, host = pghost, port = pgport, user = pguser, password = pgpassword, calendartbl = calendartbl)[is.na(rez) == T])
   }else{
     return(NULL)
   }
 }
 
-getPlayers <- function(x, dbname = "NBA16"){
+
+
+getPlayers <- function(dbname, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", playertbl = "playerlist",playercol = "PLAYER_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
-  query <- paste("select distinct \"PLAYER_ID\" from rd.playerlist",sep="")
-  pls <- as.character(unlist(as.list(dbGetQuery(con, query))))
-  return(pls)
+  con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
+  query <- paste("select distinct \'",playercol,"\' from ",schema,".",playertbl,sep="")
+  players <- as.character(unlist(as.list(dbGetQuery(con, query))))
+  return(players)
 }
 
-getPgData <- function(dbname, schema){
+
+getPgData <- function(dbname, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
-  con <- dbConnect(drv, dbname = dbname, host = "localhost", port = 5432, user = "postgres", password = "postgres")
+  con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
   query <-paste("select table_name FROM information_schema.tables where table_schema = \'",schema,"\'",sep="")
   tbs <- as.character(unlist(as.list(dbGetQuery(con, query))))
-  #return(sapply(tbs,FUN = function(x) dbReadTable(con, c(schema, x))))
-  #return(tbs)
+
   i <- 1
   for(i in 1:length(tbs))
   {
-    assign(tbs[i],dbReadTable(con, c("rd",tbs[i])), pos =.GlobalEnv)
+    assign(tbs[i],dbReadTable(con, c(schema,tbs[i])), pos =.GlobalEnv)
   }
 
 }
 
 
+
+
 getShotchart <- function(playerID, season = "2016-17"){
-  url <- paste("http://stats.nba.com/stats/shotchartdetail?CFID=33&CFPARAMS=",season,"&ContextFilter=&ContextMeasure=FGA&DateFrom=&DateTo=&GameID=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerID=",playerID,"&PlusMinus=N&PlayerPosition=&Rank=N&RookieYear=&Season=",season,"&SeasonSegment=&SeasonType=Regular+Season&TeamID=0&VsConference=&VsDivision=&mode=Advanced&showDetails=0&showShots=1&showZones=0", sep="")
+
+  tryCatch({
+
+  url <- paste("http://stats.nba.com/stats/shotchartdetail?CFID=33&CFPARAMS=",season,"&ContextFilter=&ContextMeasure=FGA&DateFrom=&DateTo=&GameID=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerID=",playerID,"&SeasonType=Regular+Season&TeamID=0&VsConference=&VsDivision=&mode=Advanced&showDetails=0&showShots=1&showZones=0&RookieYear=&SeasonSegment=&PlayerPosition=", sep="")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -136,14 +150,17 @@ getShotchart <- function(playerID, season = "2016-17"){
   x4 <- gsub(";", ",",x3, perl=TRUE)
   shot_chart<-read.table(textConnection(x4), header=T, sep=",", skip=2, stringsAsFactors=FALSE, fill = TRUE, row.names = NULL)
   shot_chart2 <- shot_chart[shot_chart$GRID_TYPE == 'Shot Chart Detail', -c(1,22)]
-  return(shot_chart2)
+  shot_chart2 <- shot_chart2[,which(colnames(shot_chart2) != "X")]
+
+  return(shot_chart2)}, error=function(e) NULL)
 }
 
 
 
-getBoxscoreAdv <- function(gameID){
+getBoxscoreAdv <- function(gameID, season = "2016-17"){
   require(lubridate)
-  url <- paste("http://stats.nba.com/stats/boxscoreadvancedv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=2016-17&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+  tryCatch({
+  url <- paste("http://stats.nba.com/stats/boxscoreadvancedv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -157,8 +174,10 @@ getBoxscoreAdv <- function(gameID){
   bsb$MINS <- as.numeric(minute(ms(bsb[,9])))
   bsb$SECS <- as.numeric(second(ms(bsb[,9])))
   bsb <- bsb[,-9]
-  return(bsb)
+  return(bsb)}, error=function(e) NULL)
 }
+
+
 
 doBoxscore <- function(traditional.=traditional, advanced. = advanced, misc. = misc, ptracking.=ptracking){
   require(dplyr)
@@ -169,9 +188,10 @@ doBoxscore <- function(traditional.=traditional, advanced. = advanced, misc. = m
 }
 
 
-getBoxscoreMisc <- function(gameID){
+getBoxscoreMisc <- function(gameID, season = "2016-17"){
   require(lubridate)
-  url <- paste("http://stats.nba.com/stats/boxscoremiscv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=2016-17&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+  tryCatch({
+  url <- paste("http://stats.nba.com/stats/boxscoremiscv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -185,14 +205,14 @@ getBoxscoreMisc <- function(gameID){
   bsb$MINS <- as.numeric(minute(ms(bsb[,9])))
   bsb$SECS <- as.numeric(second(ms(bsb[,9])))
   bsb <- bsb[,-9]
-  return(bsb)
+  return(bsb)}, error=function(e) NULL)
 }
 
 
-
-getBoxscorePt <- function(gameID){
+getBoxscorePt <- function(gameID, season = "2016-17"){
   require(lubridate)
-  url <- paste("http://stats.nba.com/stats/boxscoreplayertrackv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=2016-17&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+  tryCatch({
+  url <- paste("http://stats.nba.com/stats/boxscoreplayertrackv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -206,13 +226,15 @@ getBoxscorePt <- function(gameID){
   bsb$MINS <- as.numeric(minute(ms(bsb[,9])))
   bsb$SECS <- as.numeric(second(ms(bsb[,9])))
   bsb <- bsb[,-9]
-  return(bsb)
+  return(bsb)}, error=function(e) NULL)
 }
 
 
-getBoxscoreTrad <- function(gameID){
+
+getBoxscoreTrad <- function(gameID, season = "2016-17"){
   require(lubridate)
-  url <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=2016-17&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+  tryCatch({
+  url <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -228,12 +250,8 @@ getBoxscoreTrad <- function(gameID){
   bsb$MINS <- as.numeric(minute(ms(bsb[,9])))
   bsb$SECS <- as.numeric(second(ms(bsb[,9])))
   bsb <- bsb[,-9]
-  return(bsb)
+  return(bsb)}, error=function(e) NULL)
 }
-
-
-
-
 
 
 
@@ -242,7 +260,7 @@ getPlaybyplay <- function(gameID){
   require(stringr)
   require(dplyr)
   require(zoo)
-
+  tryCatch({
   url <- paste("http://stats.nba.com/stats/playbyplay?GameID=", gameID, "&StartPeriod=0&EndPeriod=14", sep="")
   web_page <- readLines(url, warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
@@ -257,13 +275,13 @@ getPlaybyplay <- function(gameID){
   bsb$SECS <- as.numeric(second(ms(bsb$PCTIMESTRING)))
   bsb[1,c("SCORE","SCOREMARGIN")] <- c("0 - 0",0)
   bsb[,11:12] <- apply(bsb[,11:12],2,na.locf)
-  return(bsb)
+  return(bsb)}, error=function(e) NULL)
 }
-
 
 
 getPlayerlist <- function(season = "2016-17"){
   require(dplyr)
+  tryCatch({
   url  <- paste("http://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=",season,"&IsOnlyCurrentSeason=1%20", sep="")
   web_page <- readLines(url, warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
@@ -271,12 +289,14 @@ getPlayerlist <- function(season = "2016-17"){
   x3 <- gsub("\"rowSet\":\n", "", x2, perl=TRUE)
   x4 <- gsub(";", ",",x3, perl=TRUE)
 
+  #http://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=2016-17&IsOnlyCurrentSeason=0
+
   playerlist<-read.table(textConnection(x4), header=T, sep=",", skip=2, stringsAsFactors=FALSE, fill = TRUE)
   playerlist<-playerlist[,c(1,3,4,5,6,8,10,11,13)]
   playerlist$PERSON_ID <- as.character(playerlist$PERSON_ID)
   playerlist$TEAM_ID <- as.character(playerlist$TEAM_ID)
   colnames(playerlist)[1] <- "PLAYER_ID"
-  return(playerlist)
+  return(playerlist)}, error=function(e) NULL)
 }
 
 
@@ -308,11 +328,14 @@ getPlayerInfo <- function(playerID){
 
 
 
-getPlaytypePlayer <- function(playtype, what = "offensive", season = "2016"){
-
+getPlaytypePlayer <- function(playtype, type = "offensive", season = "2016"){
+  tryCatch({
   if(playtype %in% c("PostTouch","ElbowTouch","PaintTouch","SpeedDistance","CatchShoot",
                      "Defense","Drives","Passing","Possessions","PullUpShot","Rebounding","Efficiency")){
-    url <- paste("http://stats.nba.com/stats/leaguedashptstats?College=&Conference=&%20Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=%20&GameScope=&Height=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0%20&PerMode=PerGame&PlayerExperience=&PlayerOrTeam=Player&PlayerPosition=&PtMeasureType=",playtype,"&Season=2016-17&SeasonSegment=&SeasonType=Regular+Season&StarterBench=%20&TeamID=0&VsConference=&VsDivision=&Weight=", sep = "")
+
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+
+    url <- paste("http://stats.nba.com/stats/leaguedashptstats?College=&Conference=&%20Country=&DateFrom=&DateTo=&Division=&DraftPick=&DraftYear=%20&GameScope=&Height=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PORound=0%20&PerMode=PerGame&PlayerExperience=&PlayerOrTeam=Player&PlayerPosition=&PtMeasureType=",playtype,"&Season=",seasonid,"&SeasonSegment=&SeasonType=Regular+Season&StarterBench=%20&TeamID=0&VsConference=&VsDivision=&Weight=", sep = "")
     web_page <- readLines(url, warn = F)
     x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
     x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -323,12 +346,11 @@ getPlaytypePlayer <- function(playtype, what = "offensive", season = "2016"){
 
   if(playtype %in% c("Isolation","Transition","Postup","PRBallHandler","PRRollman","Spotup",
                      "Handoff","Cut","OffScreen","OffRebound")){
-    url <- paste("http://stats-prod.nba.com/wp-json/statscms/v1/synergy/player/?category=",playtype,"&limit=500&name=",what,"&q=2452161&season=",season,"&seasonType=Reg", sep ="")
+    url <- paste("http://stats-prod.nba.com/wp-json/statscms/v1/synergy/player/?category=",playtype,"&limit=500&name=",type,"&q=2452161&season=",season,"&seasonType=Reg", sep ="")
     web_page <- readLines(url, warn = F)
     nba <- as.data.frame(fromJSON(web_page),stringsAsFactors = FALSE)
   }
 
-  ###yeah I know, but I need specified columns for each table
 
   if(playtype == "CatchShoot"){getcols <- c("PLAYER_ID","PLAYER_NAME","CATCH_SHOOT_FGM","CATCH_SHOOT_FGA",
                                             "CATCH_SHOOT_FG_PCT",  "CATCH_SHOOT_PTS", "CATCH_SHOOT_FG3M", "CATCH_SHOOT_FG3A","CATCH_SHOOT_FG3_PCT", "CATCH_SHOOT_EFG_PCT")}
@@ -361,17 +383,20 @@ getPlaytypePlayer <- function(playtype, what = "offensive", season = "2016"){
     assign(paste("DF_",playtype,sep=""),nba)
     return(get(paste("DF_",playtype,sep="")))
   }
+},error = function(err){
+  return(NULL)
+})
 }
 
 
 
 
 
-getPlaytypeTeam <- function(playtype, what = "defensive", season = "2016"){
-
+getPlaytypeTeam <- function(playtype, type = "defensive", season = "2016"){
+  tryCatch({
   if(playtype %in% c("Isolation","Transition","Postup","PRBallHandler","PRRollman","Spotup",
                      "Handoff","Cut","OffScreen","OffRebound")){
-    url <- paste("http://stats-prod.nba.com/wp-json/statscms/v1/synergy/team/?category=",playtype,"&limit=500&name=",what,"&q=2452161&season=",season,"&seasonType=Reg",sep="")
+    url <- paste("http://stats-prod.nba.com/wp-json/statscms/v1/synergy/team/?category=",playtype,"&limit=500&name=",type,"&q=2452161&season=",season,"&seasonType=Reg",sep="")
     web_page <- readLines(url, warn = F)
     nba <- as.data.frame(fromJSON(web_page),stringsAsFactors = FALSE)
 
@@ -383,19 +408,25 @@ getPlaytypeTeam <- function(playtype, what = "defensive", season = "2016"){
     assign(paste("TEAM_",playtype,sep=""),nba)
     return(get(paste("TEAM_",playtype,sep="")))
 
-  }
+  }}
+  ,error = function(err){
+    return(NULL)
+  })
 }
 
 
 
 
 
-mo2Num <- function(x) match(tolower(x), tolower(month.abb))
+
 
 getSchedule <- function(month){
   require(XML)
   require(stringr)
   require(jsonlite)
+
+  mo2Num <- function(x) match(tolower(x), tolower(month.abb))
+  tryCatch({
   doc.html <- htmlTreeParse(
     paste('http://www.basketball-reference.com/leagues/NBA_2017_games-',month,'.html',sep=""),useInternal = TRUE)
   s <- as.data.frame(readHTMLTable(doc.html,stringsAsFactors= F),stringsAsFactors =F)
@@ -413,12 +444,18 @@ getSchedule <- function(month){
   s$vpts <- as.numeric(s$vpts)
   s$hpts <- as.numeric(s$hpts)
   return(s)
+  }
+  ,error = function(err){
+    return(NULL)
+  })
 }
 
 getNbaSchedule <- function(dt){
   require(XML)
   require(stringr)
   require(jsonlite)
+  mo2Num <- function(x) match(tolower(x), tolower(month.abb))
+  tryCatch({
   url <- paste("http://data.nba.com/data/10s/json/cms/noseason/scoreboard/",dt,"/games.json", sep ="")
   web_page <- readLines(url, warn = F)
   tb <- as.data.frame(fromJSON(web_page),stringsAsFactors = F)
@@ -430,413 +467,10 @@ getNbaSchedule <- function(dt){
   visit$TEAM_NAME <- paste(visit$city, visit$nickname, sep=" ")
   basic$home <- home$TEAM_NAME
   basic$visitor <- visit$TEAM_NAME
-  return(basic)
+  return(basic)}
+  ,error = function(err){
+    return(NULL)
+  })
 }
-
-
-getESPNpbp <- function(espnID) {
-  link <-
-    paste("http://www.espn.com/nba/playbyplay?gameId=", espnID, sep = "")
-  docHtml <- htmlTreeParse(link, useInternal = TRUE)
-  pbpESPN <- readHTMLTable(docHtml, stringsAsFactors = F)
-  quarters <- unname(which(lapply(pbpESPN, nrow) > 20))
-  qrts <- pbpESPN[quarters]
-  q <- 1
-  for (q in 1:length(qrts))
-  {
-    qrts[[q]]$V2 <- q
-  }
-  game <- do.call(rbind.data.frame, qrts)
-
-  return(list(game, qrts))
-}
-
-
-createLineup <- function(gameID
-                         , calendar. = calendar
-                         , espnCalendar. = espnCalendar
-                         , traditional. = traditional
-                         , teamlist. = teamlist
-                         , playbyplay. = playbyplay) {
-
-  require(sqldf)
-  require(XML)
-  require(dplyr)
-  require(zoo)
-  require(data.table)
-  joinedCalendar <- left_join(calendar., espnCalendar., by = c("visitor",
-                                                               "home", "dateid"))
-  habr <- teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID ==
-                                                       gameID, "home"], "TEAM_ABBREVIATION"]
-  vabr <- teamlist.[teamlist.$TEAM_NAME == calendar.[calendar.$GAME_ID ==
-                                                       gameID, "visitor"], "TEAM_ABBREVIATION"]
-  s5v <- traditional.[is.na(traditional$START_POSITION) ==
-                        F & traditional.$GAME_ID == gameID & traditional$TEAM_ABBREVIATION ==
-                        vabr, "PLAYER_NAME"]
-  s5h <- traditional.[is.na(traditional.$START_POSITION) ==
-                        F & traditional.$GAME_ID == gameID & traditional.$TEAM_ABBREVIATION ==
-                        habr, "PLAYER_NAME"]
-  fullv <- traditional.[traditional.$TEAM_ABBREVIATION == vabr &
-                          traditional.$GAME_ID == gameID, "PLAYER_NAME"]
-  fullh <- traditional.[traditional.$TEAM_ABBREVIATION == habr &
-                          traditional.$GAME_ID == gameID, "PLAYER_NAME"]
-  espnID <- trimws(joinedCalendar[joinedCalendar$GAME_ID ==
-                                    gameID, "espn"])
-  espnGame <- getESPNpbp(espnID)
-  game <- espnGame[[1]]
-
-  game$MINS <- suppressWarnings(as.numeric(gsub("\\:.*", "", game$V1)))
-  game$SECS <- suppressWarnings(as.numeric(gsub("^.*\\:", "", game$V1)))
-  game$PERIOD <- suppressWarnings(as.numeric(game$V2))
-
-  haaa <- data.table::as.data.table(game[game$V1 != "time",])
-  haaa[,playID:=data.table::frank(haaa, PERIOD, -MINS,-SECS, ties.method="min")]
-
-  haaa <- haaa[with(haaa, order(playID)),]
-  game <- left_join(game,haaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD"))
-
-
-  ######GET AND DIVIDE ESPN
-
-  #qtrs <- espnGame[[2]]
-  game$V3 <- gsub("Frank Kaminsky III","Frank Kaminsky",game$V3)
-  subso <- game[grep("enters", game$V3), ]
-  subsvisitor <- subso[grep(paste(fullv, collapse = "|"), subso$V3), ]
-  subshome <- subso[grep(paste(fullh, collapse = "|"), subso$V3), ]
-
-  #######PREPARE SUBSHOME/SUBSVISITOR
-  subshome$fnames <- unlist(lapply(subshome$V3, FUN = function(x) gsub(" enters the game for ", "/", x)))
-  subsvisitor$fnames <- unlist(lapply(subsvisitor$V3, FUN = function(x) gsub(" enters the game for ", "/", x)))
-
-
-  gaaa <- data.table::as.data.table(subshome)
-  gaaa[,timeID:=data.table::frank(gaaa, PERIOD, -MINS,-SECS, ties.method="min")]
-
-  gaaa <- gaaa[with(gaaa, order(timeID)),]
-  subshome <- left_join(subshome,gaaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD","playID","fnames"))
-
-
-  faaa <- data.table::as.data.table(subsvisitor)
-  faaa[,timeID:=data.table::frank(faaa, PERIOD, -MINS,-SECS, ties.method="min")]
-
-  faaa <- faaa[with(faaa, order(timeID)),]
-  subsvisitor <- left_join(subsvisitor,faaa,by = c("V1", "V2", "V3", "V4", "V5", "MINS", "SECS", "PERIOD","playID","fnames"))
-
-
-
-
-  ###### PREPARE PLAYBYPLAY
-  who <- "HOMEDESCRIPTION"
-  linueps <- playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8,9,
-                                                       12) & playbyplay.$GAME_ID == gameID, append(who, c("EVENTMSGTYPE",
-                                                                                                         "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
-  linueps <- linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12 | linueps$EVENTMSGTYPE == 9, ]
-
-  linueps[, 8:12] <- NA
-  colnames(linueps)[8:12] <- c("A_home", "B_home", "C_home",
-                               "D_home", "E_home")
-  linueps[, 8:12] <- as.data.frame(t(s5h), stringsAsFactors = F)
-  linueps$snames <- unlist(lapply(linueps$HOMEDESCRIPTION,
-                                  FUN = function(x) gsub("SUB: ", "", x)))
-  linueps$snames <- unlist(lapply(linueps$snames, FUN = function(x) gsub(" FOR ",
-                                                                         "|", x)))
-  #####poki co same zmiany
-  daaa <- data.table::as.data.table(linueps[linueps$EVENTMSGTYPE == 8,])
-  daaa[,timeID:=data.table::frank(daaa, PERIOD, -MINS,-SECS, ties.method="min")]
-
-  daaa <- daaa[with(daaa, order(timeID)),]
-  linueps <- left_join(linueps,daaa,by = c("HOMEDESCRIPTION", "EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE", "A_home", "B_home", "C_home", "D_home", "E_home", "snames"))
-
-
-
-
-  #########################JOIN SUBS AND LINEUPS
-
-  testls <- sqldf("select * from linueps l left join subshome s on l.timeID=s.timeID",
-                  stringsAsFactors = F, drv = "SQLite")
-
-  testls <- testls[, -c(14, 20:22)]
-  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)),
-                   ]
-  tls <- 1
-  for (tls in 1:nrow(testls)) {
-    testls[tls, "V5"] <- stri_count_regex(testls$fnames[tls],
-                                          testls$snames[tls])
-  }
-  testnc <- testls[testls$V5 == 2 | is.na(testls$V5) == TRUE,
-                   c(1:12, 16,19,20,21)]
-
-  ########################LINEUPS IN MAKING
-  n <- 1
-  for (n in 2:nrow(testnc)) {
-    schodzi <- unlist(strsplit(testnc[n, 15], "/"))[2]
-    wchodzi <- unlist(strsplit(testnc[n, 15], "/"))[1]
-    testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
-
-    if (testnc[n, "EVENTMSGTYPE"] %in% c(12,9)) {
-      testnc[n, 8:12] <- NA
-      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] %in% c(12,9))) == 0) {
-        nextp <- nrow(testnc)
-      } else {
-        nextp <- min(which(testnc[n + 1:nrow(testnc),  "EVENTMSGTYPE"] %in% c(12,9)) + n)
-      }
-      fors <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
-                                                                                  "/"))[2])
-      subs <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
-                                                                                  "/"))[1])
-      fors <- na.omit(unlist(fors))
-      subs <- na.omit(unlist(subs))
-
-      NonNAindex <- which(!is.na(testnc[n:nrow(testnc),"playID"]))+n
-      firstNonNA <- min(NonNAindex)
-
-      playSTART <- testnc[firstNonNA,"playID"]
-      NonNAindex <- which(!is.na(testnc[nextp:nrow(testnc),"playID"]))+nextp-1
-      firstNonNA <- min(NonNAindex)
-
-      playSTOP <- testnc[firstNonNA,"playID"]
-
-
-
-      unknown <- na.omit(game[game$playID > playSTART & game$playID < playSTOP, "V3"])
-
-
-      period <- testnc[n, "PERIOD"]
-      known <- unique(append(fors, subs))
-      pat <- setdiff(fullh, known)
-
-
-      matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
-
-      if (class(matches) != "list"){
-        wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
-        irving <- append(known, wholeQuarterPlayed)
-      }else{
-        wholeQuarterPlayed <- as.character()
-        irving <- known
-      }
-
-
-
-      if(length(irving) < 5){
-        previousRow <- unname(testnc[n-1,8:12])
-        wholeQuarterPlayed <- setdiff(previousRow, fors)
-      }
-
-
-      if (length(wholeQuarterPlayed) > 0) {
-        cq <- 1
-        for (cq in 1:length(wholeQuarterPlayed)) {
-          testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
-        }
-      }
-      y <- 1
-      if (length(wholeQuarterPlayed) == 0) {
-        while (is.na(testnc[n, 8]) == TRUE) {
-          testnc[n:nrow(testnc), 8] <- ifelse(!unlist(fors[y]) %in%
-                                                subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 1) {
-        while (is.na(testnc[n, 9]) == TRUE) {
-          testnc[n:nrow(testnc), 9] <- ifelse(!unlist(fors[y]) %in%
-                                                subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 2) {
-        while (is.na(testnc[n, 10]) == TRUE) {
-          testnc[n:nrow(testnc), 10] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 3) {
-        while (is.na(testnc[n, 11]) == TRUE) {
-          testnc[n:nrow(testnc), 11] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 4) {
-        while (is.na(testnc[n, 12]) == TRUE) {
-          testnc[n:nrow(testnc), 12] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-          if (y > 15){
-
-            testnc[n:nrow(testnc), 12] <- setdiff(previousRow,testnc[n,8:11])
-          }
-        }
-      }
-    }
-  }
-  home <- testnc
-
-
-  who <- "VISITORDESCRIPTION"
-  linueps <- playbyplay.[playbyplay.$EVENTMSGTYPE %in% c(8,9,
-                                                       12) & playbyplay.$GAME_ID == gameID, append(who, c("EVENTMSGTYPE",
-                                                                                                         "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE"))]
-  linueps <- linueps[is.na(linueps[, 1]) == F | linueps$EVENTMSGTYPE == 12 | linueps$EVENTMSGTYPE == 9, ]
-
-  linueps[, 8:12] <- NA
-  colnames(linueps)[8:12] <- c("A_visit", "B_visit", "C_visit",
-                               "D_visit", "E_visit")
-  linueps[, 8:12] <- as.data.frame(t(s5v), stringsAsFactors = F)
-  linueps$snames <- unlist(lapply(linueps$VISITORDESCRIPTION,
-                                  FUN = function(x) gsub("SUB: ", "", x)))
-  linueps$snames <- unlist(lapply(linueps$snames, FUN = function(x) gsub(" FOR ",
-                                                                         "|", x)))
-  #####poki co same zmiany
-  daaa <- data.table::as.data.table(linueps[linueps$EVENTMSGTYPE == 8,])
-  daaa[,timeID:=data.table::frank(daaa, PERIOD, -MINS,-SECS, ties.method="min")]
-
-  daaa <- daaa[with(daaa, order(timeID)),]
-  linueps <- left_join(linueps,daaa,by = c("VISITORDESCRIPTION", "EVENTMSGTYPE", "PERIOD", "EVENTNUM", "MINS", "SECS", "SCORE", "A_visit", "B_visit", "C_visit","D_visit", "E_visit", "snames"))
-
-
-
-
-  #########################JOIN SUBS AND LINEUPS
-
-  testls <- sqldf("select * from linueps l left join subsvisitor s on l.timeID=s.timeID",
-                  stringsAsFactors = F, drv = "SQLite")
-
-  testls <- testls[, -c(14, 20:22)]
-  testls <- testls[with(testls, order(PERIOD, -MINS, -SECS)),
-                   ]
-  tls <- 1
-  for (tls in 1:nrow(testls)) {
-    testls[tls, "V5"] <- stri_count_regex(testls$fnames[tls],
-                                          testls$snames[tls])
-  }
-  testnc <- testls[testls$V5 == 2 | is.na(testls$V5) == TRUE,
-                   c(1:12, 16,19,20,21)]
-
-  ########################LINEUPS IN MAKING
-  n <- 1
-  for (n in 2:nrow(testnc)) {
-    schodzi <- unlist(strsplit(testnc[n, 15], "/"))[2]
-    wchodzi <- unlist(strsplit(testnc[n, 15], "/"))[1]
-    testnc[n:nrow(testnc), which(testnc[n, ] == schodzi)] <- wchodzi
-
-    if (testnc[n, "EVENTMSGTYPE"] %in% c(12,9)) {
-      testnc[n, 8:12] <- NA
-      if (length(which(testnc[n + 1:nrow(testnc), "EVENTMSGTYPE"] %in% c(12,9))) == 0) {
-        nextp <- nrow(testnc)
-      } else {
-        nextp <- min(which(testnc[n + 1:nrow(testnc),  "EVENTMSGTYPE"] %in% c(12,9)) + n)
-      }
-      fors <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
-                                                                                  "/"))[2])
-      subs <- lapply(testnc[(n + 1):nextp, 15], FUN = function(x) unlist(strsplit(x,
-                                                                                  "/"))[1])
-      fors <- na.omit(unlist(fors))
-      subs <- na.omit(unlist(subs))
-
-      NonNAindex <- which(!is.na(testnc[n:nrow(testnc),"playID"]))+n
-      firstNonNA <- min(NonNAindex)
-
-      playSTART <- testnc[firstNonNA,"playID"]
-      NonNAindex <- which(!is.na(testnc[nextp:nrow(testnc),"playID"]))+nextp-1
-      firstNonNA <- min(NonNAindex)
-
-      playSTOP <- testnc[firstNonNA,"playID"]
-
-
-
-      unknown <- na.omit(game[game$playID > playSTART & game$playID < playSTOP, "V3"])
-
-
-      period <- testnc[n, "PERIOD"]
-      known <- unique(append(fors, subs))
-      pat <- setdiff(fullv, known)
-
-
-      matches <- sapply(pat, grepl, unknown, ignore.case = TRUE)
-
-      if (class(matches) != "list"){
-        wholeQuarterPlayed <- names(which(apply(matches, 2, any) == TRUE))
-        irving <- append(known, wholeQuarterPlayed)
-      }else{
-        wholeQuarterPlayed <- as.character()
-        irving <- known
-      }
-
-
-
-      if(length(irving) < 5){
-        previousRow <- unname(testnc[n-1,8:12])
-        wholeQuarterPlayed <- setdiff(previousRow, fors)
-      }
-
-
-      if (length(wholeQuarterPlayed) > 0) {
-        cq <- 1
-        for (cq in 1:length(wholeQuarterPlayed)) {
-          testnc[n:nrow(testnc), 8 + cq - 1] <- wholeQuarterPlayed[cq]
-        }
-      }
-      y <- 1
-      if (length(wholeQuarterPlayed) == 0) {
-        while (is.na(testnc[n, 8]) == TRUE) {
-          testnc[n:nrow(testnc), 8] <- ifelse(!unlist(fors[y]) %in%
-                                                subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 1) {
-        while (is.na(testnc[n, 9]) == TRUE) {
-          testnc[n:nrow(testnc), 9] <- ifelse(!unlist(fors[y]) %in%
-                                                subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 2) {
-        while (is.na(testnc[n, 10]) == TRUE) {
-          testnc[n:nrow(testnc), 10] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 3) {
-        while (is.na(testnc[n, 11]) == TRUE) {
-          testnc[n:nrow(testnc), 11] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-        }
-      }
-      if (length(wholeQuarterPlayed) <= 4) {
-        while (is.na(testnc[n, 12]) == TRUE) {
-          testnc[n:nrow(testnc), 12] <- ifelse(!unlist(fors[y]) %in%
-                                                 subs[1:y - 1], unlist(fors[y]), NA)
-          y <- y + 1
-          if (y > 15){
-
-            testnc[n:nrow(testnc), 12] <- setdiff(previousRow,testnc[n,8:11])
-          }
-        }
-      }
-    }
-  }
-
-  visit <- testnc
-  ptest <- playbyplay.[playbyplay.$GAME_ID == gameID, ]
-  ptest <- left_join(ptest, home[, c(1, 4, 8:12)], by = c("EVENTNUM",
-                                                          "HOMEDESCRIPTION"))
-  ptest <- left_join(ptest, visit[, c(1, 4, 8:12)], by = c("EVENTNUM",
-                                                           "VISITORDESCRIPTION"))
-  ptest[, 15:24] <- apply(ptest[, 15:24], 2, na.locf)
-  if (is.na(ptest[1, "SCORE"]) == TRUE) {
-    ptest[1, c("SCORE", "SCOREMARGIN")] = c("0 - 0", 0)
-    ptest[, 11:12] <- apply(ptest[, 11:12], 2, na.locf)
-  }
-  return(ptest)
-
-}
-
-
 
 
