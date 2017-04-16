@@ -5,7 +5,7 @@
 \title{Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance}
 \usage{
 writePG(dataset, dbname, schema, pghost = "localhost", pgport = 5432,
-  pguser = "postgres", pgpassword = "postgres")
+  pguser = "postgres", pgpassword = "postgres", owrite = FALSE)
 }
 \description{
 Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance

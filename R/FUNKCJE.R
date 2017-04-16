@@ -33,7 +33,7 @@
 
 
 
-writePG <- function(dataset, dbname, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres"){
+writePG <- function(dataset, dbname, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres",owrite = FALSE){
   on.exit(dbDisconnect(con))
 
   tryCatch({
@@ -53,7 +53,7 @@ writePG <- function(dataset, dbname, schema, pghost= "localhost",pgport= 5432, p
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
 
-    if(name %in% c("traditional","advanced","misc","ptracking","playbyplay")){
+    if(owrite  == FALSE){
       dbWriteTable(con, c(schema, name), value = data, overwrite = FALSE, row.names = FALSE, append = T)
     }else{
       dbWriteTable(con, c(schema, name), value = data, overwrite = T, row.names = FALSE, append = F)
