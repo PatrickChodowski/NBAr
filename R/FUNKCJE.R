@@ -33,7 +33,7 @@
 
 
 
-writePG <- function(dataset, dbname, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres"){
+writePG <- function(dataset, dbname, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres"){
   on.exit(dbDisconnect(con))
 
   tryCatch({
@@ -45,8 +45,8 @@ writePG <- function(dataset, dbname, schema ="rd", pghost= "localhost",pgport= 5
 
     } else {
 
-      data <- dataset
-      name <- get(dataset)
+      data <- get(dataset)
+      name <- dataset
 
     }
     require(RPostgreSQL)
@@ -54,19 +54,19 @@ writePG <- function(dataset, dbname, schema ="rd", pghost= "localhost",pgport= 5
     con <- dbConnect(drv, dbname = dbname, host = pghost, port = pgport, user = pguser, password = pgpassword)
 
     if(name %in% c("traditional","advanced","misc","ptracking","playbyplay")){
-      dbWriteTable(con, c(schema, dbname), value = data, overwrite = FALSE, row.names = FALSE, append = T)
+      dbWriteTable(con, c(schema, name), value = data, overwrite = FALSE, row.names = FALSE, append = T)
     }else{
-      dbWriteTable(con, c(schema, dbname), value = data, overwrite = T, row.names = FALSE, append = F)
+      dbWriteTable(con, c(schema, name), value = data, overwrite = T, row.names = FALSE, append = F)
     }
 
   },error = function(err){
-    print(paste("No table", sep=" "))
+    print(paste("No table", name ,sep=" "))
   })
 }
 
 
 
-getLastGame <- function(dbname, date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
+getLastGame <- function(dbname, date = Sys.Date()-1, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "schedule",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -77,7 +77,7 @@ getLastGame <- function(dbname, date = Sys.Date()-1, schema ="rd", pghost= "loca
 
 
 
-getDoneGames <- function(dbname,date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
+getDoneGames <- function(dbname,date = Sys.Date()-1, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "schedule",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -88,7 +88,7 @@ getDoneGames <- function(dbname,date = Sys.Date()-1, schema ="rd", pghost= "loca
 
 
 
-checkActual <- function(table, dbname, date = Sys.Date()-1, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "calendar",gamecol = "GAME_ID"){
+checkActual <- function(table, dbname, date = Sys.Date()-1, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", calendartbl = "schedule",gamecol = "GAME_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")
@@ -106,7 +106,7 @@ checkActual <- function(table, dbname, date = Sys.Date()-1, schema ="rd", pghost
 
 
 
-getPlayers <- function(dbname, schema ="rd", pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", playertbl = "playerlist",playercol = "PLAYER_ID"){
+getPlayers <- function(dbname, schema, pghost= "localhost",pgport= 5432, pguser = "postgres", pgpassword="postgres", playertbl = "playerlist",playercol = "PLAYER_ID"){
   on.exit(dbDisconnect(con))
   require(RPostgreSQL)
   drv <- dbDriver("PostgreSQL")

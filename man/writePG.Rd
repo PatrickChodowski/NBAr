@@ -4,8 +4,8 @@
 \alias{writePG}
 \title{Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance}
 \usage{
-writePG(dataset, dbname, schema = "rd", pghost = "localhost",
-  pgport = 5432, pguser = "postgres", pgpassword = "postgres")
+writePG(dataset, dbname, schema, pghost = "localhost", pgport = 5432,
+  pguser = "postgres", pgpassword = "postgres")
 }
 \description{
 Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance
