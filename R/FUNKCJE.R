@@ -410,22 +410,21 @@ getPlaytypeTeam <- function(playtype, type = "defensive", season = "2016"){
 
 
 
-getSchedule <- function (month,season) 
+getSchedule <- function (month, season) 
 {
   require(XML)
   require(stringr)
   require(jsonlite)
   mo2Num <- function(x) match(tolower(x), tolower(month.abb))
-  seas <- as.numeric(season)+1
+  seas <- as.numeric(season) + 1
   tryCatch({
-    doc.html <- htmlTreeParse(paste("http://www.basketball-reference.com/leagues/NBA_",seas,"_games-", 
-                                    month, ".html", sep = ""), useInternal = TRUE)
+    doc.html <- htmlTreeParse(paste("http://www.basketball-reference.com/leagues/NBA_", 
+                                    seas, "_games-", month, ".html", sep = ""), useInternal = TRUE)
     s <- as.data.frame(readHTMLTable(doc.html, stringsAsFactors = F), 
                        stringsAsFactors = F)
     s <- s[, c(1, 3, 4, 5, 6, 8)]
-    colnames(s) <- c("GAME_DATE", "VISITOR", "VPTS", "HOME", "HPTS", 
-                     "OT")
-    s$d <- substr(s$date, 6, length(s$date))
+    colnames(s) <- c("GAME_DATE", "VISITOR", "VPTS", "HOME", "HPTS", "OT")
+    s$d <- substr(s$GAME_DATE, 6, length(s$GAME_DATE))
     s$d1 <- substr(s$d, 1, 3)
     s$d1 <- mo2Num(s$d1)
     s$d1 <- ifelse(nchar(s$d1) == 1, paste("0", s$d1, sep = ""), 
@@ -436,8 +435,8 @@ getSchedule <- function (month,season)
     s$d3 <- str_sub(s$d, -4)
     s$DATE <- as.Date(paste(s$d3, s$d1, s$d2, sep = "-"))
     s <- s[, 1:6]
-    s$vpts <- as.numeric(s$vpts)
-    s$hpts <- as.numeric(s$hpts)
+    s$VPTS <- as.numeric(s$VPTS)
+    s$HPTS <- as.numeric(s$HPTS)
     return(s)
   }, error = function(err) {
     return(NULL)
