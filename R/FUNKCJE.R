@@ -301,31 +301,33 @@ getPlayerlist <- function(season = "2016-17"){
 
 
 
-getPlayerInfo <- function(playerID){
+getPlayerInfo <- function (playerID) 
+{
   require(jsonlite)
   require(dplyr)
   tryCatch({
-    url <- paste("http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID=",playerID,"&SeasonType=Regular+Season",sep="")
+    url <- paste("http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID=", 
+                 playerID, "&SeasonType=Regular+Season", sep = "")
     web_page <- readLines(url, warn = F)
     x1 <- fromJSON(web_page)
     x2 <- x1[[3]]
-    hx2 <-as.data.frame(unlist(x2$headers))
-    hx2$v <- as.data.frame(unlist(x2$rowSet))
-    cols <- c("DISPLAY_FIRST_LAST","BIRTHDATE", "SCHOOL"
-              ,"COUNTRY","HEIGHT","WEIGHT","SEASON_EXP","POSITION","TEAM_ABBREVIATION","PLAYER_ID")
-    colnames(hx2) <- c("attribute","value")
-    x3 <- as.data.frame(t(hx2[hx2$attribute %in% cols, "value"]),stringsAsFactors = F)
-    colnames(x3) <- cols
+    hx2 <- as.data.frame(unlist(x2$headers[1]))
+    hx2$v <- as.data.frame(unlist(x2$rowSet[1]))
+    
+    colnames(hx2) <- c("attribute", "value")
+    x3 <- as.data.frame(t(hx2[, "value"]), 
+                        stringsAsFactors = F)
+    colnames(x3) <- hx2$attribute
     x3$WEIGHT <- as.numeric(x3$WEIGHT)
-    x3$HEIGHT <- round(
-      (as.numeric(substr(x3$HEIGHT, 1, 1))*30.5+
-         as.numeric(substr(x3$HEIGHT, 3, 5))*2.54
-      ),digits =0)
-    return(x3)},error = function(err){
-      return(NULL)
-    })
+    x3$HEIGHT <- round((as.numeric(substr(x3$HEIGHT, 1, 1)) * 
+                          30.5 + as.numeric(substr(x3$HEIGHT, 3, 5)) * 2.54), 
+                       digits = 0)
+    colnames(x3)[1] <- "PLAYER_ID"
+    return(x3)
+  }, error = function(err) {
+    return(NULL)
+  })
 }
-
 
 
 getPlaytypePlayer <- function(playtype, type = "offensive", season = "2016"){
