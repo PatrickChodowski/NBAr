@@ -136,11 +136,13 @@ getPgData <- function(dbname, schema, pghost= "localhost",pgport= 5432, pguser =
 
 
 
-getShotchart <- function(playerID, season = "2016-17"){
+getShotchart <- function(playerID, season = "2016"){
 
   tryCatch({
 
-  url <- paste("http://stats.nba.com/stats/shotchartdetail?CFID=33&CFPARAMS=",season,"&ContextFilter=&ContextMeasure=FGA&DateFrom=&DateTo=&GameID=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerID=",playerID,"&SeasonType=Regular+Season&TeamID=0&VsConference=&VsDivision=&mode=Advanced&showDetails=0&showShots=1&showZones=0&RookieYear=&SeasonSegment=&PlayerPosition=", sep="")
+  seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+
+  url <- paste("http://stats.nba.com/stats/shotchartdetail?CFID=33&CFPARAMS=",seasonid,"&ContextFilter=&ContextMeasure=FGA&DateFrom=&DateTo=&GameID=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=0&Outcome=&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerID=",playerID,"&SeasonType=Regular+Season&TeamID=0&VsConference=&VsDivision=&mode=Advanced&showDetails=0&showShots=1&showZones=0&RookieYear=&SeasonSegment=&PlayerPosition=", sep="")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -155,10 +157,12 @@ getShotchart <- function(playerID, season = "2016-17"){
 
 
 
-getBoxscoreAdv <- function(gameID, season = "2016-17"){
+getBoxscoreAdv <- function(gameID, season = "2016"){
   require(lubridate)
   tryCatch({
-  url <- paste("http://stats.nba.com/stats/boxscoreadvancedv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+
+  url <- paste("http://stats.nba.com/stats/boxscoreadvancedv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",seasonid,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -176,10 +180,12 @@ getBoxscoreAdv <- function(gameID, season = "2016-17"){
 }
 
 
-getBoxscoreMisc <- function(gameID, season = "2016-17"){
+getBoxscoreMisc <- function(gameID, season = "2016"){
   require(lubridate)
   tryCatch({
-  url <- paste("http://stats.nba.com/stats/boxscoremiscv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+
+  url <- paste("http://stats.nba.com/stats/boxscoremiscv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",seasonid,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -197,10 +203,12 @@ getBoxscoreMisc <- function(gameID, season = "2016-17"){
 }
 
 
-getBoxscorePt <- function(gameID, season = "2016-17"){
+getBoxscorePt <- function(gameID, season = "2016"){
   require(lubridate)
   tryCatch({
-  url <- paste("http://stats.nba.com/stats/boxscoreplayertrackv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+  url <- paste("http://stats.nba.com/stats/boxscoreplayertrackv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",seasonid,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -219,10 +227,12 @@ getBoxscorePt <- function(gameID, season = "2016-17"){
 
 
 
-getBoxscoreTrad <- function(gameID, season = "2016-17"){
+getBoxscoreTrad <- function(gameID, season = "2016"){
   require(lubridate)
   tryCatch({
-  url <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",season,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
+
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+  url <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=28800&GameID=",gameID,"&RangeType=0&Season=",seasonid,"&SeasonType=Regular+Season&StartPeriod=1&StartRange=0", sep = "")
   web_page <- readLines(url,warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -267,10 +277,12 @@ getPlaybyplay <- function(gameID){
 }
 
 
-getPlayerlist <- function(season = "2016-17"){
+getPlayerlist <- function(season = "2016"){
   require(dplyr)
   tryCatch({
-  url  <- paste("http://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=",season,"&IsOnlyCurrentSeason=1%20", sep="")
+    seasonid <- paste(season, as.numeric(substring(season,3,4))+1,sep="-")
+
+  url  <- paste("http://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=",seasonid,"&IsOnlyCurrentSeason=1%20", sep="")
   web_page <- readLines(url, warn = F)
   x1 <- gsub("[\\{\\}\\]]", "", web_page, perl=TRUE)
   x2 <- gsub("[\\[]", "\n", x1, perl=TRUE)
@@ -289,26 +301,26 @@ getPlayerlist <- function(season = "2016-17"){
 
 
 
-getPlayerInfo <- function (playerID) 
+getPlayerInfo <- function (playerID)
 {
   require(jsonlite)
   require(dplyr)
   tryCatch({
-    url <- paste("http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID=", 
+    url <- paste("http://stats.nba.com/stats/commonplayerinfo?LeagueID=00&PlayerID=",
                  playerID, "&SeasonType=Regular+Season", sep = "")
     web_page <- readLines(url, warn = F)
     x1 <- fromJSON(web_page)
     x2 <- x1[[3]]
     hx2 <- as.data.frame(unlist(x2$headers[1]))
     hx2$v <- as.data.frame(unlist(x2$rowSet[1]))
-    
+
     colnames(hx2) <- c("attribute", "value")
-    x3 <- as.data.frame(t(hx2[, "value"]), 
+    x3 <- as.data.frame(t(hx2[, "value"]),
                         stringsAsFactors = F)
     colnames(x3) <- hx2$attribute
     x3$WEIGHT <- as.numeric(x3$WEIGHT)
-    x3$HEIGHT <- round((as.numeric(substr(x3$HEIGHT, 1, 1)) * 
-                          30.5 + as.numeric(substr(x3$HEIGHT, 3, 5)) * 2.54), 
+    x3$HEIGHT <- round((as.numeric(substr(x3$HEIGHT, 1, 1)) *
+                          30.5 + as.numeric(substr(x3$HEIGHT, 3, 5)) * 2.54),
                        digits = 0)
     colnames(x3)[1] <- "PLAYER_ID"
     return(x3)
@@ -410,7 +422,7 @@ getPlaytypeTeam <- function(playtype, type = "defensive", season = "2016"){
 
 
 
-getSchedule <- function (month, season) 
+getSchedule <- function (month, season="2016")
 {
   require(XML)
   require(stringr)
@@ -418,19 +430,19 @@ getSchedule <- function (month, season)
   mo2Num <- function(x) match(tolower(x), tolower(month.abb))
   seas <- as.numeric(season) + 1
   tryCatch({
-    doc.html <- htmlTreeParse(paste("http://www.basketball-reference.com/leagues/NBA_", 
+    doc.html <- htmlTreeParse(paste("http://www.basketball-reference.com/leagues/NBA_",
                                     seas, "_games-", month, ".html", sep = ""), useInternal = TRUE)
-    s <- as.data.frame(readHTMLTable(doc.html, stringsAsFactors = F), 
+    s <- as.data.frame(readHTMLTable(doc.html, stringsAsFactors = F),
                        stringsAsFactors = F)
     s <- s[, c(1, 3, 4, 5, 6, 8)]
     colnames(s) <- c("GAME_DATE", "VISITOR", "VPTS", "HOME", "HPTS", "OT")
     s$d <- substr(s$GAME_DATE, 6, length(s$GAME_DATE))
     s$d1 <- substr(s$d, 1, 3)
     s$d1 <- mo2Num(s$d1)
-    s$d1 <- ifelse(nchar(s$d1) == 1, paste("0", s$d1, sep = ""), 
+    s$d1 <- ifelse(nchar(s$d1) == 1, paste("0", s$d1, sep = ""),
                    s$d1)
     s$d2 <- substr(s$d, 5, 6)
-    s$d2 <- ifelse(grepl(",", s$d2) == TRUE, paste("0", substr(s$d2, 
+    s$d2 <- ifelse(grepl(",", s$d2) == TRUE, paste("0", substr(s$d2,
                                                                1, 1), sep = ""), s$d2)
     s$d3 <- str_sub(s$d, -4)
     s$DATE <- as.Date(paste(s$d3, s$d1, s$d2, sep = "-"))
