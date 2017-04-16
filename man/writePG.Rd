@@ -10,3 +10,4 @@ writePG(dataset, dbname, schema = "rd", pghost = "localhost",
 \description{
 Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance
 }
+

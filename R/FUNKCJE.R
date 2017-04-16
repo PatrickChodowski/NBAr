@@ -1,6 +1,5 @@
 #' Download data from NBA.com/Stats/ and build your own database in local PostgreSQL instance
 #'
-#'
 #' @import RPostgreSQL
 #' @import XML
 #' @import dplyr
@@ -21,7 +20,6 @@
 #' @export getPgData
 #' @export getShotchart
 #' @export getBoxscoreAdv
-#' @export doBoxscore
 #' @export getBoxscoreMisc
 #' @export getBoxscorePt
 #' @export getBoxscoreTrad
@@ -31,7 +29,7 @@
 #' @export getPlaytypePlayer
 #' @export getPlaytypeTeam
 #' @export getSchedule
-#' @export getNbaSchedule
+
 
 
 
@@ -175,16 +173,6 @@ getBoxscoreAdv <- function(gameID, season = "2016-17"){
   bsb$SECS <- as.numeric(second(ms(bsb[,9])))
   bsb <- bsb[,-9]
   return(bsb)}, error=function(e) NULL)
-}
-
-
-
-doBoxscore <- function(traditional.=traditional, advanced. = advanced, misc. = misc, ptracking.=ptracking){
-  require(dplyr)
-  boxscore_all <- left_join(traditional., advanced.)
-  boxscore_all <- left_join(boxscore_all, misc.)
-  boxscore_all <- left_join(boxscore_all, ptracking.)
-  return(boxscore_all)
 }
 
 
@@ -422,57 +410,37 @@ getPlaytypeTeam <- function(playtype, type = "defensive", season = "2016"){
 
 
 
-getSchedule <- function(month){
-  require(XML)
-  require(stringr)
-  require(jsonlite)
-
-  mo2Num <- function(x) match(tolower(x), tolower(month.abb))
-  tryCatch({
-  doc.html <- htmlTreeParse(
-    paste('http://www.basketball-reference.com/leagues/NBA_2017_games-',month,'.html',sep=""),useInternal = TRUE)
-  s <- as.data.frame(readHTMLTable(doc.html,stringsAsFactors= F),stringsAsFactors =F)
-  s <- s[,c(1,3,4,5,6,8)]
-  colnames(s) <- c("date","visitor","vpts","home","hpts","to")
-  s$d <- substr(s$date, 6, length(s$date))
-  s$d1 <- substr(s$d, 1, 3)
-  s$d1 <- mo2Num(s$d1)
-  s$d1 <- ifelse(nchar(s$d1) == 1, paste("0",s$d1,sep=""),s$d1)
-  s$d2 <- substr(s$d, 5, 6)
-  s$d2 <- ifelse(grepl(",",s$d2) == TRUE, paste("0",substr(s$d2,1,1),sep=""),s$d2)
-  s$d3 <- str_sub(s$d, -4)
-  s$date <- as.Date(paste(s$d3,s$d1, s$d2, sep="-"))
-  s <- s[,1:6]
-  s$vpts <- as.numeric(s$vpts)
-  s$hpts <- as.numeric(s$hpts)
-  return(s)
-  }
-  ,error = function(err){
-    return(NULL)
-  })
-}
-
-getNbaSchedule <- function(dt){
+getSchedule <- function (month,season) 
+{
   require(XML)
   require(stringr)
   require(jsonlite)
   mo2Num <- function(x) match(tolower(x), tolower(month.abb))
+  seas <- as.numeric(season)+1
   tryCatch({
-  url <- paste("http://data.nba.com/data/10s/json/cms/noseason/scoreboard/",dt,"/games.json", sep ="")
-  web_page <- readLines(url, warn = F)
-  tb <- as.data.frame(fromJSON(web_page),stringsAsFactors = F)
-  basic <- unique(tb[,c(18,15)])
-  colnames(basic) <- c("dateid","GAME_ID")
-  home <- tb$sports_content.games.game.home
-  home$TEAM_NAME <- paste(home$city, home$nickname, sep=" ")
-  visit <- tb$sports_content.games.game.visitor
-  visit$TEAM_NAME <- paste(visit$city, visit$nickname, sep=" ")
-  basic$home <- home$TEAM_NAME
-  basic$visitor <- visit$TEAM_NAME
-  return(basic)}
-  ,error = function(err){
+    doc.html <- htmlTreeParse(paste("http://www.basketball-reference.com/leagues/NBA_",seas,"_games-", 
+                                    month, ".html", sep = ""), useInternal = TRUE)
+    s <- as.data.frame(readHTMLTable(doc.html, stringsAsFactors = F), 
+                       stringsAsFactors = F)
+    s <- s[, c(1, 3, 4, 5, 6, 8)]
+    colnames(s) <- c("GAME_DATE", "VISITOR", "VPTS", "HOME", "HPTS", 
+                     "OT")
+    s$d <- substr(s$date, 6, length(s$date))
+    s$d1 <- substr(s$d, 1, 3)
+    s$d1 <- mo2Num(s$d1)
+    s$d1 <- ifelse(nchar(s$d1) == 1, paste("0", s$d1, sep = ""), 
+                   s$d1)
+    s$d2 <- substr(s$d, 5, 6)
+    s$d2 <- ifelse(grepl(",", s$d2) == TRUE, paste("0", substr(s$d2, 
+                                                               1, 1), sep = ""), s$d2)
+    s$d3 <- str_sub(s$d, -4)
+    s$DATE <- as.Date(paste(s$d3, s$d1, s$d2, sep = "-"))
+    s <- s[, 1:6]
+    s$vpts <- as.numeric(s$vpts)
+    s$hpts <- as.numeric(s$hpts)
+    return(s)
+  }, error = function(err) {
     return(NULL)
   })
 }
-
 
