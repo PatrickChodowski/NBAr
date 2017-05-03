@@ -4,14 +4,19 @@
 #' @param month Character name of the month
 #' @param season Number of the year in which season started
 #'
-#' @return None
+#' @return Dataset containing Game Date, Visitor team name, Home team name, Visitor points,Home points and OT information
 #'
-#' @author Patrick Chodowski, \email{kbroman@@biostat.wisc.edu}
+#' @author Patrick Chodowski, \email{Chodowski.Patrick@@gmail.com}
 #' @references \url{http://www.basketball-reference.com}
 #' @keywords NBAr, Schedule, Calendar
 #'
 #' @examples
 #' getSchedule("january","2016")
+#'
+#' season.no <- "2016"
+#' months <- c("october","november","december","january","february","march","april","may")
+#' ds.months <- lapply(months,getSchedule, season = season.no)
+#' schedule <- do.call(rbind.data.frame,ds.months)
 #'
 #' @export getSchedule
 #'
