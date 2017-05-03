@@ -54,8 +54,9 @@ playerbio.dataset <- getPlayerBio(Season,PerMode,SeasonType,SeasonSegment,GameSe
 \author{
 Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 }
+\keyword{,}
 \keyword{NBAr,}
-\keyword{defense,}
+\keyword{player}
 \keyword{players,}
 \keyword{teams,}
 

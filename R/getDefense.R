@@ -103,14 +103,14 @@ College=
 n1 <- readLines(url,warn = F)
 n2 <- fromJSON(n1)
 
-rsn <- ifelse(type== "Player","LeagueDashPTDefend","LeagueDashPtTeamDefend")
+rsn <- ifelse(Type== "Player","LeagueDashPTDefend","LeagueDashPtTeamDefend")
 
 index <- which(n2$resultSets$name == rsn)
 cols <- unlist(n2$resultSets$headers[index])
 vls <- n2$resultSets$rowSet[index]
 vls2 <- as.data.frame(vls,stringsAsFactors = F)
 colnames(vls2) <- cols
-s <- ifelse(type=="Player",6,4)
+s <- ifelse(Type=="Player",6,4)
 vls2[,c(s:ncol(vls2))] <- sapply(vls2[,c(s:ncol(vls2))], as.numeric)
 
 return(vls2)}, error=function(e) NULL)

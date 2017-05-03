@@ -17,7 +17,7 @@
 #' @return Dataset from stats.nba.com
 #'
 #' @author Patrick Chodowski, \email{Chodowski.Patrick@@gmail.com}
-#' @keywords NBAr, defense, players, teams,
+#' @keywords NBAr, player , players, teams,
 #'
 #' @examples
 #'

@@ -96,7 +96,7 @@ paste("http://stats.nba.com/stats/leaguehustlestats",Type,"
 
 n1 <- readLines(url,warn = F)
 n2 <- fromJSON(n1)
-index <- which(n2$resultSets$name == paste("HustleStats",type,sep=""))
+index <- which(n2$resultSets$name == paste("HustleStats",Type,sep=""))
 cols <- unlist(n2$resultSets$headers[index])
 vls <- n2$resultSets$rowSet[index]
 vls2 <- as.data.frame(vls,stringsAsFactors = F)

@@ -119,7 +119,7 @@ colf <-cols[ci:length(cols)]
 vls <- n2$resultSets$rowSet
 vls2 <- as.data.frame(vls,stringsAsFactors = F)
 colnames(vls2) <- colf
-s <- ifelse(type=="Player",5,3)
+s <- ifelse(Type=="Player",5,3)
 vls2[,c(s:ncol(vls2))] <- sapply(vls2[,c(s:ncol(vls2))], as.numeric)
 
 return(vls2)}, error=function(e) NULL)
