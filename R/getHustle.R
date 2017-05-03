@@ -101,7 +101,7 @@ cols <- unlist(n2$resultSets$headers[index])
 vls <- n2$resultSets$rowSet[index]
 vls2 <- as.data.frame(vls,stringsAsFactors = F)
 colnames(vls2) <- cols
-s <- ifelse(type=="Player",5,3)
+s <- ifelse(Type=="Player",5,3)
 vls2[,c(s:ncol(vls2))] <- sapply(vls2[,c(s:ncol(vls2))], as.numeric)
 return(vls2)}, error=function(e) NULL)
 }
