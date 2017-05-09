@@ -50,4 +50,3 @@ Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 \keyword{Tracking}
 \keyword{Traditional,}
 \keyword{players,}
-

@@ -35,4 +35,3 @@ Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 }
 \keyword{NBAr,}
 \keyword{PostgreSQL}
-

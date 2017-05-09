@@ -26,13 +26,12 @@ ds.months <- lapply(months,getSchedule, season = season.no)
 schedule <- do.call(rbind.data.frame,ds.months)
 
 }
-\author{
-Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
-}
 \references{
 \url{http://www.basketball-reference.com}
+}
+\author{
+Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 }
 \keyword{Calendar}
 \keyword{NBAr,}
 \keyword{Schedule,}
-

@@ -16,7 +16,7 @@
 #' @param SeasonType Choose data for preseason, regular season or postseason. Default parameter is "Regular Season". c("Regular Season","Playoffs","Pre Season","All Star")
 #' @param SeasonSegment Choose season half for the data. Empty string means whole season and it is set by default. c("","Post All-Star","Pre All-Star")
 #' @param GameSegment Choose game half for the data. Empty string means whole game and it is set by default. c("","First Half","Overtime","Second Half")
-#' @param Period Choose game period for the data. 0 means whole game and it is set by default. c(0:4)
+#' @param Period Choose game period for the data. 0 means whole game and it is set by default. as.character(c(0:4))
 #' @param DateFrom Day from which data will be collected. It is set in MM/DD/YYYY format and by default is not specified, so data is calculated for whole season.
 #' @param DateTo Day to which data will be collected. It is set in MM/DD/YYYY format and by default is not specified, so data is calculated for whole season.
 #' @param Outcome Filter by game result. It can be a loss (L) or a win (W). By default parameter is an empty string, so both are taken into account. c("","W","L")
@@ -32,27 +32,63 @@
 #' Season <- "2016"
 #' Type <- c("Player","Team")[1]
 #' GeneralRange <- c("Overall","Catch+And+Shoot","Pullups","Less+Than+10+ft")[1]
-#' ShotClockRange <- c("24-22","22-18+Very+Early","18-15+Early","15-7+Average","7-4+Late","4-0+Very+Late","ShotClock+Off")[1]
-#' DribbleRange <- c("0+Dribbles","1+Dribble","2+Dribbles","3-6+Dribbles","7++Dribbles")[1]
-#' TouchTimeRange <- c("Touch+<+2+Seconds","Touch+2-6+Seconds","Touch+6++Seconds")[1]
-#' CloseDefDistRange <- c("0-2+Feet+-+Very+Tight","2-4+Feet+-+Tight","4-6+Feet+-+Open","6++Feet+-+Wide+Open")[1]
+#'
+#' ShotClockRange <- c("24-22",
+#' "22-18+Very+Early","18-15+Early","15-7+Average","7-4+Late","4-0+Very+Late","ShotClock+Off")[1]
+#'
+#' DribbleRange <- c("0+Dribbles",
+#'                   "1+Dribble",
+#'                   "2+Dribbles",
+#'                   "3-6+Dribbles",
+#'                   "7++Dribbles"
+#'                   )[1]
+#'
+#' TouchTimeRange <- c("Touch+<+2+Seconds",
+#'                     "Touch+2-6+Seconds",
+#'                     "Touch+6++Seconds"
+#'                     )[1]
+#'
+#' CloseDefDistRange <- c("0-2+Feet+-+Very+Tight",
+#'                        "2-4+Feet+-+Tight",
+#'                        "4-6+Feet+-+Open",
+#'                        "6++Feet+-+Wide+Open"
+#'                        )[1]
+#'
 #' ShotDistRange <- c("",">3D10.0")[1]
 #' PerMode <- c("PerGame","Totals")[1]
 #' SeasonType <- c("Regular Season","Playoffs","Pre Season","All Star")[1]
 #' SeasonSegment <- c("","Post All-Star","Pre All-Star")[1]
 #' GameSegment <- c("","First Half","Overtime","Second Half")[1]
-#' Period <- c(0:4)[1]
+#' Period <- as.character(c(0:4))[1]
 #' DateFrom <- "01/01/2017"
 #' DateTo <- "04/30/2017"
 #' Outcome <- c("","W","L")[1]
 #' OpponentTeamID <- c("0")
 #'
-#' shot.dashboards.dataset <- getShootingDashboard(Season,Type,GeneralRange,ShotClockRange,DribbleRange,TouchTimeRange,CloseDefDistRange,ShotDistRange,PerMode,SeasonType,SeasonSegment,GameSegment,Period,DateFrom,DateTo,Outcome,OpponentTeamID)
+#' shot.dashboards.dataset <- getShootingDashboard(
+#'                                                 Season,
+#'                                                 Type,
+#'                                                 GeneralRange,
+#'                                                 ShotClockRange,
+#'                                                 DribbleRange,
+#'                                                 TouchTimeRange,
+#'                                                 CloseDefDistRange,
+#'                                                 ShotDistRange,
+#'                                                 PerMode,
+#'                                                 SeasonType,
+#'                                                 SeasonSegment,
+#'                                                 GameSegment,
+#'                                                 DateFrom,
+#'                                                 DateTo,
+#'                                                 Outcome,
+#'                                                 Period,
+#'                                                 OpponentTeamID
+#'                                                 )
 #'
 #' @importFrom jsonlite fromJSON
 #' @export getShootingDashboard
 
-getShootingDashboard <- function(Season,
+getShootingDashboard <- function( Season,
                                   Type,
                                   GeneralRange,
                                   ShotClockRange,
@@ -67,7 +103,7 @@ getShootingDashboard <- function(Season,
                                   DateFrom = "",
                                   DateTo = "",
                                   Outcome = "",
-                                  Period = 0,
+                                  Period = "0",
                                   OpponentTeamID = "0"
 ){
   require(jsonlite, quietly = T)

@@ -4,16 +4,14 @@
 \alias{getPlaytype}
 \title{Download Playtype data for Players and Teams}
 \usage{
-getPlaytype(Season = "", Type = "", Category = "", Names = "",
-  SeasonType = "")
+getPlaytype(Season, Type, Playtype, Names = "offensive", SeasonType = "Reg")
 }
 \arguments{
 \item{Season}{Number of the year in which season started}
 
 \item{Type}{Specify if data is for Team or Player   c("Player,"Team")}
 
-\item{Category}{Pick one of the playtypes provided by stats.nba.com. These are Isolation, Transition, Postup, PRBallHandler, PRRollman, Spotup, Handoff,Postup, Cut, OffScreen, Putbacks and Misc.
-c("Isolation","Transition","PRBallHandler","PRRollman","Postup","Spotup","Handoff","Cut","OffScreen","OffRebound","Misc")}
+\item{Playtype}{Pick one of the playtypes provided by stats.nba.com. c("Postup","Transition","Isolation","PRBallHandler","PRRollman","Spotup","Handoff","Cut","OffScreen","OffRebound","Misc")}
 
 \item{Names}{Specify if data is for offensive or defensive side of the floor. c("offensive","defensive")}
 
@@ -33,14 +31,22 @@ Season <- "2016"
 Names <- c("offensive","defensive")[1]
 Type <- c("Player","Team")[1]
 
-Playtype <- c("PostTouch","ElbowTouch","PaintTouch"
-              ,"CatchShoot","Drives","PullUpShot","Isolation",
-              "PRBallHandler","PRRollman","Spotup","Handoff","Cut","OffScreen",
-              "OffRebound")[1]
+Playtype <- c("Postup",
+              "Transition",
+              "Isolation",
+              "PRBallHandler",
+              "PRRollman",
+              "Spotup",
+              "Handoff",
+              "Cut",
+              "OffScreen",
+              "OffRebound",
+              "Misc"
+              )[1]
 
 SeasonType <- c("Reg","Post","Pre")[1]
 
-playtypes.dataset <- getPlaytype(Season,Type,Category,Names,SeasonType)
+playtypes.dataset <- getPlaytype(Season,Type,Playtype,Names,SeasonType)
 
 }
 \author{
@@ -50,4 +56,3 @@ Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 \keyword{Playtypes,}
 \keyword{players,}
 \keyword{teams,}
-

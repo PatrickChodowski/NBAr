@@ -6,7 +6,7 @@
 \usage{
 getHustle(Season, Type, PerMode = "PerGame", SeasonType = "Regular Season",
   SeasonSegment = "", GameSegment = "", DateFrom = "", DateTo = "",
-  Outcome = "", Period = 0, OpponentTeamID = "0")
+  Outcome = "", Period = "0", OpponentTeamID = "0")
 }
 \arguments{
 \item{Season}{Number of the year in which season started}
@@ -27,7 +27,7 @@ getHustle(Season, Type, PerMode = "PerGame", SeasonType = "Regular Season",
 
 \item{Outcome}{Filter by game result. It can be a loss (L) or a win (W). By default parameter is an empty string, so both are taken into account. c("","W","L")}
 
-\item{Period}{Choose game period for the data. 0 means whole game and it is set by default. c(0:4)}
+\item{Period}{Choose game period for the data. 0 means whole game and it is set by default. as.character(c(0:4))}
 
 \item{OpponentTeamID}{Filter by opponent's team id from nba.com database. Default "0" means all teams.}
 }
@@ -45,13 +45,25 @@ PerMode <- c("PerGame","Totals")[1]
 SeasonType <- c("Regular Season","Playoffs","Pre Season","All Star")[1]
 SeasonSegment <- c("","Post All-Star","Pre All-Star")[1]
 GameSegment <- c("","First Half","Overtime","Second Half")[1]
-Period <- c(0:4)[1]
+Period <- as.character(c(0:4))[1]
 DateFrom <- "01/01/2017"
 DateTo <- "04/30/2017"
 Outcome <- c("","W","L")[1]
 OpponentTeamID <- c("0")
 
-hustle.dataset <- getHustle(Season,Type,PerMode,SeasonType,SeasonSegment,GameSegment,Period,DateFrom,DateTo,Outcome,OpponentTeamID)
+hustle.dataset <- getHustle(
+                            Season,
+                            Type,
+                            PerMode,
+                            SeasonType,
+                            SeasonSegment,
+                            GameSegment,
+                            DateFrom,
+                            DateTo,
+                            Outcome,
+                            Period,
+                            OpponentTeamID
+                            )
 
 }
 \author{
@@ -61,4 +73,3 @@ Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
 \keyword{hustle,}
 \keyword{players,}
 \keyword{teams,}
-
