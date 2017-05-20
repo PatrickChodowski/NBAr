@@ -1,5 +1,7 @@
 # NBAr
 
+How to track NBA data in R 
+
 Download data from NBA.com API
 
 ## General
