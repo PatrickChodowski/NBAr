@@ -4,7 +4,10 @@
 \alias{getShotchart}
 \title{Download shotchart data for player}
 \usage{
-getShotchart(playerID, season)
+getShotchart(PlayerID, Season, ContextMeasure = "FGA", DateFrom = "",
+  DateTo = "", GameSegment = "", Period = "0", PerMode = "PerGame",
+  Outcome = "", SeasonType = "Regular Season", SeasonSegment = "",
+  OpponentTeamID = "0")
 }
 \arguments{
 \item{playerID}{Player's ID in NBA.com DB}
@@ -18,6 +21,18 @@ Dataset containing shot information such as location on the floor, type of shot 
 Downloads and process NBA.com shotchart data for given player and season.
 }
 \examples{
+
+#' ContextMeasure <- c('PTS','FGA','FGM','FG_PCT','FG3M','FG3A','FG3_PCT','PF','EFG_PCT','TS_PCT','PTS_FB','PTS_OFF_TOV','PTS_2ND_CHANCE')
+GameSegment <- c('','First Half','Overtime','Second Half')
+OpponentTeamID <- c("0")
+PerMode <- c("PerGame","Totals")[1]
+Period <- as.character(c(0:4))[1]
+DateFrom <- "01/01/2017"
+DateTo <- "04/30/2017"
+SeasonType <- c("Regular Season","Playoffs","Pre Season","All Star")[1]
+SeasonSegment <- c("","Post All-Star","Pre All-Star")[1]
+Outcome <- c("","W","L")[1]
+
 getShotchart("2853","2014")
 
 shotcharts<- lapply(players, getShotchart, season = "2014")
