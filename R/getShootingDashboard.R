@@ -90,12 +90,12 @@
 
 getShootingDashboard <- function( Season,
                                   Type,
-                                  GeneralRange,
-                                  ShotClockRange,
-                                  DribbleRange,
-                                  TouchTimeRange,
-                                  CloseDefDistRange,
-                                  ShotDistRange,
+                                  GeneralRange = "",
+                                  ShotClockRange = "",
+                                  DribbleRange = "",
+                                  TouchTimeRange = "",
+                                  CloseDefDistRange = "",
+                                  ShotDistRange = "",
                                   PerMode = "PerGame",
                                   SeasonType = "Regular Season",
                                   SeasonSegment = "",
@@ -113,7 +113,7 @@ getShootingDashboard <- function( Season,
 
 url <- gsub("\n","",
 paste("http://stats.nba.com/stats/leaguedash",Type,"ptshot?
-CloseDefDistRange=
+CloseDefDistRange=",CloseDefDistRange,"
 &College=
 &Conference=
 &Country=
@@ -122,7 +122,7 @@ CloseDefDistRange=
 &Division=
 &DraftPick=
 &DraftYear=
-&DribbleRange=
+&DribbleRange=",DribbleRange,"
 &GameScope=
 &GameSegment=",GameSegment,"
 &GeneralRange=",GeneralRange,"
@@ -144,11 +144,11 @@ CloseDefDistRange=
 &Season=",seasonid,"
 &SeasonSegment=",SeasonSegment,"
 &SeasonType=",SeasonType,"
-&ShotClockRange=
-&ShotDistRange=
+&ShotClockRange=",ShotClockRange,"
+&ShotDistRange=",ShotDistRange,"
 &StarterBench=
 &TeamID=0
-&TouchTimeRange=
+&TouchTimeRange=",TouchTimeRange,"
 &VsConference=
 &VsDivision=
 &Weight="
