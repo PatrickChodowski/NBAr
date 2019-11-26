@@ -102,11 +102,6 @@ utils::globalVariables(c('opid',
                          ))
 
 
-# get_playbyplay: no visible global function definition for ‘ms’
-# get_playbyplay2: no visible global function definition for
-# ‘is_character’
-# get_playbyplay2: no visible global function definition for ‘map_df’
-
 
 
 
