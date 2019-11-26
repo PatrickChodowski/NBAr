@@ -1,0 +1,24 @@
+Package: NBAr
+Type: Package
+Title: Get NBA data to R faster and easier than ever before!
+Version: 2.0.0
+Author: Patrick Chodowski
+Maintainer: Patrick Chodowski <chodowski.patrick@gmail.com>
+Description: Refreshed NBAr with better code
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 3.5.0)
+LazyData: true
+Imports:
+      dplyr,
+      tidyr,
+      purrr,
+      stringr,
+      glue,
+      httr,
+      jsonlite,
+      zoo,
+      lubridate,
+      tibble,
+      magrittr
+RoxygenNote: 7.0.1
