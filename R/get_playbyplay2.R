@@ -12,7 +12,7 @@
 #' @examples
 #' get_playbyplay2(21800001)
 #'
-#' @importFrom  lubridate second minute
+#' @importFrom  lubridate second minute ms
 #' @import dplyr
 #' @import tidyr
 #' @import httr
@@ -76,7 +76,9 @@ get_playbyplay2 <- function(game_id, verbose=TRUE){
       offensive_team_id = oftid,
       home_score = hs,
       visit_score = vs,
-      order_no = ord) %>% as_tibble()
+      order_no = ord) %>% as_tibble() %>%
+    mutate(mins = as.numeric(minute(ms(clock))),
+           secs = as.numeric(second(ms(clock)))) 
 
   verbose_dataset(verbose, dataset)
 
