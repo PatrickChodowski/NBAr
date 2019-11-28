@@ -98,7 +98,9 @@ utils::globalVariables(c('opid',
                          'game_id',
                          'Var1',
                          'Var2',
-                         'new_col'
+                         'new_col',
+                         'player_id', 
+                         'team_id'
                          ))
 
 
