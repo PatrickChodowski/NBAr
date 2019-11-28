@@ -41,25 +41,29 @@ devtools::install_github("PatrickChodowski/NBAr")
 ## Functions
 
 Functions below allow you do easily download data about games, players, teams, statistics and advanced measures from NBA.com. You will find boxscores, play-by-play, shotchart, schedule, player Bios, Sport-VU tracking data, playtypes and much much more!
-
+ - get_all_tracking
  - get_boxscore
  - get_defense
  - get_general
  - get_hustle
  - get_lineups
  - get_matchups
+ - get_news
  - get_on_off
  - get_playbyplay
  - get_playbyplay2
+ - get_player_movement
  - get_playerbio
  - get_players
  - get_playtype
+ - get_rotowire_status
  - get_schedule
  - get_shooting
  - get_shooting_dashboard
  - get_shotchart
  - get_team_boxscore
  - get_tracking
+
 
 [You can read more about that package and my work on my website, Per48.co](https://www.per48.co)
 
