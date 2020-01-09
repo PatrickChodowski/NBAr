@@ -29,7 +29,7 @@ get_rotowire_status <- function(verbose=TRUE){
   tryCatch({
     link = glue("https://stats-prod.nba.com/wp-json/statscms/v1/rotowire/player/")
     verbose_print(verbose, link)
-    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com')))$content) %>% jsonlite::fromJSON()
+    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% jsonlite::fromJSON()
     
     dataset = result_sets_df$ListItems %>%
       as.data.frame(stringsAsFactors=F) %>%

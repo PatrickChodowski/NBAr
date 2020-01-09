@@ -37,7 +37,7 @@ get_matchups <- function(game_id, verbose = TRUE){
     link <- glue("http://stats.nba.com/stats/boxscorematchups?GameID=00{game_id}")
 
     verbose_print(verbose, link)
-    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com')))$content) %>% fromJSON()
+    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
 
     index <- which(result_sets_df$resultSets$name == "PlayerMatchupsStats")
 

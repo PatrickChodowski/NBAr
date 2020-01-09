@@ -41,7 +41,7 @@ get_playbyplay2 <- function(game_id, verbose=TRUE){
 
   link <- glue("https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/{season_id}/scores/pbp/00{game_id}_full_pbp.json")
   verbose_print(verbose, link)
-  result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com')))$content) %>% fromJSON()
+  result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
 
   cols <- c(ord = 0)
   dataset <- map_df(.x = result_sets_df$g$pd$p, .f = function(.x) result_sets_df$g$pd$pla[[.x]] %>% mutate(period = .x)) %>%

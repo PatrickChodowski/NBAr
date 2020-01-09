@@ -87,7 +87,7 @@ link <- glue("https://stats.nba.com/stats/shotchartdetail?CFID=33&CFPARAMS={seas
 
 
 verbose_print(verbose, link)
-result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com')))$content) %>% fromJSON()
+result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
 index <- which(result_sets_df$resultSets$name == "Shot_Chart_Detail")
 dataset <- result_sets_df$resultSets$rowSet[index][1] %>%
   as.data.frame(stringsAsFactors=F) %>%

@@ -78,7 +78,7 @@ link <- glue("https://stats.nba.com/stats/synergyplaytypes?LeagueID=00&",
             "&TypeGrouping={type_grouping}")
 verbose_print(verbose, link)
 
-result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com')))$content) %>% fromJSON()
+result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
 
 
 dataset <- result_sets_df$resultSets$rowSet %>%
