@@ -43,7 +43,8 @@ get_all_tracking <- function(season,
                            ...){
 
   tryCatch({
-    
+
+
     if(type  == 'Player'){
       all_track <- map(measure_types, function(x) NBAr::get_tracking(season,type,measure_type = x, ...) %>% arrange(player_id))
     } else {
@@ -62,6 +63,12 @@ get_all_tracking <- function(season,
       select(- matches('player_id(\\d)|team_abbreviation(\\d)|team_id(\\d)|player_name(\\d)|gp(\\d)|w(\\d)|l(\\d)|min(\\d)|touches(\\d)')) %>%
       select(- matches('paint_touch_fg_pct(\\d)|paint_touch_pts(\\d)|post_touch_fg_pct(\\d)|post_touch_pts(\\d)|elbow_touch_fg_pct(\\d)|elbow_touch_pts(\\d)')) %>%
       select(- matches('dreb(\\d)|points(\\d)|drive_fg_pct(\\d)|drive_pts(\\d)|pull_up_pts(\\d)|pull_up_fg_pct(\\d)|team_name(\\d)'))
+    
+    argz <- list(...)
+    if(length(argz) > 0){
+      dataset <- merge(dataset, data.frame(argz, stringsAsFactors = F) )
+    }
+
     
     return(dataset)}, error=function(e) NULL)
 }
