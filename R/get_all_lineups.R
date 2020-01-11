@@ -37,7 +37,7 @@ get_all_lineups <- function(season, group_quantities, measure_types, ...){
   
   all_lineups <- map(measure_types, 
       function(x) map(group_quantities, 
-                      function(y) NBAr::get_lineups(season, group_quantity = y, measure_type = x))
+                      function(y) NBAr::get_lineups(season, group_quantity = y, measure_type = x, ...))
       
       )
   
