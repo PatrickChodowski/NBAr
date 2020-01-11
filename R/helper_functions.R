@@ -101,7 +101,8 @@ utils::globalVariables(c('opid',
                          'new_col',
                          'player_id', 
                          'team_id',
-                         'clock'
+                         'clock',
+                         'close_def_person_id'
                          ))
 
 
