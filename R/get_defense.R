@@ -26,7 +26,7 @@
 #'
 #' @examples
 #'
-#' Season <- "2016"
+#' Season <- 2016
 #' Type <- c("Player","Team")[1]
 #'
 #' defense_category <- c("Overall",
@@ -49,7 +49,7 @@
 #' team_id <- 0
 #'
 #' defense.dataset <- get_defense(
-#'                               season = '2016',
+#'                               season = 2016,
 #'                               type = 'Team',
 #'                               defense_category = 'Overall',
 #'                               per_mode = 'Totals',

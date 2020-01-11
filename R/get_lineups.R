@@ -111,9 +111,7 @@ get_lineups <- function(season,
       select(-contains("_rank")) %>%
       mutate(group_id = str_replace_all(group_id,'^-|-$','')) %>%
       separate(group_id, c("player_id_1", "player_id_2","player_id_3","player_id_4","player_id_5"), "-") %>%
-      mutate(n = group_quantity,
-             date_from = date_from,
-             date_to = date_to) %>%
+      mutate(n = group_quantity) %>%
       select(- c(group_set)) %>%
       mutate_if(check_if_numeric, as.numeric) %>%
       mutate_at(vars(- contains('_pct')), c_to_int)
