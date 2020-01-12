@@ -14,6 +14,7 @@
 #' @param outcome Filter by game result. It can be a loss (L) or a win (W). By default parameter is an empty string, so both are taken into account. c("","W","L")
 #' @param opponent_team_id Filter by opponent's team id from nba.com database. Default "0" means all teams.
 #' @param team_id Specify team id from nba.com database. Default "0" means all teams.
+#' @param measure_type Type of statistics c('Base','Advanced','Misc','Scoring','Opponent')
 #' @param verbose Defalt TRUE - prints additional information
 
 #' @return Dataset from stats.nba.com
@@ -28,6 +29,7 @@
 #' date_from = '01/01/2018'
 #' period = 0
 #' date_to = '01/25/2018'
+#' measure_type = 'Base'
 #' outcome = c("","W","L")[1]
 #' per_mode =  c("Totals","PerGame","MinutesPer","Per48","Per40","Per36")[1]
 #' season_segment = c("","Post+All-Star","Pre+All-Star")[1]
@@ -63,6 +65,7 @@
 
 get_on_off <- function(season,
                      team_id,
+                     measure_type='Base',
                      date_from="",
                      date_to="",
                      opponent_team_id="0",
@@ -82,7 +85,7 @@ get_on_off <- function(season,
       "DateFrom={date_from}",
       "&DateTo={date_to}",
       "&GameSegment={game_segment}",
-      "&LastNGames=0&LeagueID=00&Location=&MeasureType=Base",
+      "&LastNGames=0&LeagueID=00&Location=&MeasureType={measure_type}",
       "&Month=0&OpponentTeamID={opponent_team_id}",
       "&Outcome={outcome}",
       "&PaceAdjust=N&PerMode={per_mode}",
@@ -126,9 +129,7 @@ get_on_off <- function(season,
       select(-c(group_set.x, court_status.x, group_set.y,court_status.y,gp.y),
              player_id = vs_player_id,
              player_name = vs_player_name,
-             gp = gp.x) %>%
-      mutate(date_from = date_from,
-             date_to = date_to)
+             gp = gp.x) 
 
     verbose_dataset(verbose, dataset)
 

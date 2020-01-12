@@ -7,6 +7,7 @@
 get_on_off(
   season,
   team_id,
+  measure_type = "Base",
   date_from = "",
   date_to = "",
   opponent_team_id = "0",
@@ -23,6 +24,8 @@ get_on_off(
 \item{season}{Number of the year in which season started}
 
 \item{team_id}{Specify team id from nba.com database. Default "0" means all teams.}
+
+\item{measure_type}{Type of statistics c('Base','Advanced','Misc','Scoring','Opponent')}
 
 \item{date_from}{Day from which data will be collected. It is set in MM/DD/YYYY format and by default is not specified, so data is calculated for whole season.}
 
@@ -57,6 +60,7 @@ team_id = "1610612739"
 date_from = '01/01/2018'
 period = 0
 date_to = '01/25/2018'
+measure_type = 'Base'
 outcome = c("","W","L")[1]
 per_mode =  c("Totals","PerGame","MinutesPer","Per48","Per40","Per36")[1]
 season_segment = c("","Post+All-Star","Pre+All-Star")[1]

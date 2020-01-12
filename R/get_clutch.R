@@ -1,28 +1,30 @@
-#' @name get_defense
-#' @rdname get_defense
-#' @title Download defense data for Players and Teams
+#' @name get_clutch
+#' @rdname get_clutch
+#' @title Download clutch data for Players and Teams
 #'
 #' @description  Download and process NBA.com defense data from http://stats.nba.com/players/defense-dash-overall/, http://stats.nba.com/teams/defense-dash-overall/ etc.
 #'
 #' @param season Number of the year in which season started
-#' @param ahed_behind Specify clutch situation c('Ahead+or+Behind','Behind+or+Tied','Ahead+or+Tied')
+#' @param ahead_behind Specify clutch situation c('Ahead+or+Behind','Behind+or+Tied','Ahead+or+Tied')
 #' @param clutch_time Specify clutch time c('Last+5+Minutes','Last+4+Minutes','Last+3+Minutes','Last+2+Minutes','Last+1+Minute','Last+30+Seconds','Last+10+Seconds')
 #' @param measure_type Specify metrics type c('Base','Advanced','Misc','Scoring','Usage')
 #' @param per_mode Specify if you want data divided per game or totals. Default parameter is "PerGame". c("PerGame","Totals")
 #' @param season_type Choose data for preseason, regular season or postseason. Default parameter is "Regular Season". c("Regular Season","Playoffs","Pre Season","All Star")
 #' @param date_from Day from which data will be collected. It is set in MM/DD/YYYY format and by default is not specified, so data is calculated for whole season.
 #' @param date_to Day to which data will be collected. It is set in MM/DD/YYYY format and by default is not specified, so data is calculated for whole season.
+#' @param verbose Defalt TRUE - prints additional information
 #' 
 #' @return Dataset from stats.nba.com
 #'
 #' @author Patrick Chodowski, \email{Chodowski.Patrick@@gmail.com}
-#' @keywords NBAr, defense, players, teams,
+#' @keywords NBAr, clutch, players, teams,
 #'
 #' @examples
 #'
 #' season <- 2019
 #' ahead_behind = c('Ahead+or+Behind','Behind+or+Tied','Ahead+or+Tied')[1]
-#' clutch_time = c('Last+5+Minutes','Last+4+Minutes','Last+3+Minutes','Last+2+Minutes','Last+1+Minute','Last+30+Seconds','Last+10+Seconds')[1]
+#' clutch_time = c('Last+5+Minutes','Last+4+Minutes','Last+3+Minutes',
+#' 'Last+2+Minutes','Last+1+Minute','Last+30+Seconds','Last+10+Seconds')[1]
 #' measure_type = c('Base','Advanced','Misc','Scoring','Usage')[1]
 #' per_game = c('PerGame','Totals')[1]
 #'

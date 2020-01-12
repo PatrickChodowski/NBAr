@@ -2,6 +2,7 @@
 
 export(get_all_defense)
 export(get_all_lineups)
+export(get_all_on_off)
 export(get_all_tracking)
 export(get_boxscore)
 export(get_clutch)
