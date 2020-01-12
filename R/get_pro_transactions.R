@@ -22,7 +22,7 @@
 #' @import httr
 #' @importFrom purrr set_names
 #' @import tibble
-#' @importFrom stringr str_detect
+#' @importFrom stringr str_detect str_replace_all
 #' @importFrom glue glue
 #' @importFrom magrittr %>%
 #' @importFrom jsonlite fromJSON
@@ -51,6 +51,12 @@ get_pro_transactions <- function(date_from, date_to, verbose = TRUE){
     
     dataset <- bind_rows(all_pro_tr)
     colnames(dataset) <- c('transaction_date','team_name','acquired','relinquished','notes')
+    
+    ###stringi::stri_escape_unicode("•")
+    
+    dataset <- dataset %>% 
+      mutate(acquired = str_replace_all(acquired,'\\u2022 ',''),
+             relinquished = str_replace_all(relinquished,'\\u2022 ',''))
     
     verbose_dataset(verbose, dataset)
     
