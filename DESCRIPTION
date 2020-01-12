@@ -1,10 +1,10 @@
 Package: NBAr
 Type: Package
 Title: Get NBA data to R faster and easier than ever before!
-Version: 2.0.0
+Version: 2.1.0
 Author: Patrick Chodowski
 Maintainer: Patrick Chodowski <chodowski.patrick@gmail.com>
-Description: Refreshed NBAr with better code
+Description: Refreshed NBAr with better code.
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
@@ -20,5 +20,7 @@ Imports:
       zoo,
       lubridate,
       tibble,
-      magrittr
+      magrittr,
+      rvest,
+      xml2
 RoxygenNote: 7.0.1

@@ -17,7 +17,7 @@
 #'
 #' season <- 2019
 #' group_quantities <- c(2:3)
-#' measure_types <- c('Base','Advanced'')
+#' measure_types <- c('Base','Advanced')
 #' df <- get_all_lineups(season, group_quantities, measure_types)
 #'
 #' @importFrom  lubridate second minute

@@ -107,7 +107,8 @@ utils::globalVariables(c('opid',
                          'player_id_2',
                          'player_id_3',
                          'player_id_4',
-                         'player_id_5'))
+                         'player_id_5',
+                         'full_link'))
 
 
 
