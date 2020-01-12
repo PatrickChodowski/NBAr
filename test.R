@@ -8,14 +8,8 @@ date_from = '2019-01-01'
 date_to = '2019-01-01'
 
 
-dataset <- map(teams, function(x) NBAr::get_on_off(season, team_id = x)) %>% 
-          compact() %>% 
-          bind_rows()
 
+aa = get_all_on_off(2019)
   
-  
-  colnames(dataset)
-  
-  
-  
+  View(aa)
   

@@ -36,7 +36,7 @@ get_all_on_off <- function(season,
                             ...){
   tryCatch({
     
-    dataset <- map(teams, function(x) NBAr::get_on_off(season, team_id = x)) %>% 
+    dataset <- map(teams, function(x) NBAr::get_on_off(season, team_id = x, ...)) %>% 
       compact() %>% 
       bind_rows()
     
