@@ -11,7 +11,6 @@ get_all_on_off(
     1610612758, 1610612756, 1610612766, 1610612742, 1610612743, 1610612750, 1610612764,
     1610612737, 1610612746, 1610612754, 1610612762, 1610612755, 1610612765, 1610612744,
     1610612738, 1610612745, 1610612739),
-  measure_types = c("Base", "Advanced", "Misc", "Scoring", "Opponent"),
   ...
 )
 }
@@ -20,15 +19,20 @@ get_all_on_off(
 
 \item{teams}{Specify team_ids}
 
-\item{measure_types}{Specify which statistics group you want to download. c('Base','Advanced','Misc','Scoring','Opponent')}
-
-\item{...}{Additional arguments for get_lineups}
+\item{...}{Additional arguments for get_on_off}
 }
 \value{
 Dataset from stats.nba.com
 }
 \description{
 Wrapper for processing NBA.com player on_off data
+}
+\examples{
+
+season <- 2019
+teams <- c(1610612760,1610612748,1610612759)
+df <- get_all_on_off(season, teams)
+
 }
 \author{
 Patrick Chodowski, \email{Chodowski.Patrick@gmail.com}
