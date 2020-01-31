@@ -110,7 +110,11 @@ get_shooting <- function(season,
     )
 
     verbose_print(verbose, link)
-    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
+    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+                                                                   'connection' = 'keep-alive',
+                                                                   'Accept' = 'application/json',
+                                                                   'Host' = 'stats.nba.com',
+                                                                   'x-nba-stats-origin'= 'stats')))$content) %>% fromJSON()
 
     xcols = tolower(unlist(result_sets_df$resultSets$headers$columnNames))
     if(measure_type == 'Base'){

@@ -13,3 +13,11 @@ aa = get_all_on_off(2019)
   
   View(aa)
   
+  
+library(NBAr) 
+
+  get_pro_transactions('2020-01-01','2020-01-02') 
+  
+  
+  
+  

@@ -29,7 +29,11 @@ get_schedule <- function(season, verbose=TRUE){
   tryCatch({
     link <- glue("https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/{season}/league/00_full_schedule.json")
     verbose_print(verbose, link)
-    result_sets_df <- rawToChar(httr::GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
+    result_sets_df <- rawToChar(httr::GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+                                                                         'connection' = 'keep-alive',
+                                                                         'Accept' = 'application/json',
+                                                                         'Host' = 'stats.nba.com',
+                                                                         'x-nba-stats-origin'= 'stats')))$content) %>% fromJSON()
 
     list.months <- lapply(1:nrow(result_sets_df$lscd$mscd), FUN =
                             function(x) as.data.frame(result_sets_df$lscd[x,1][1,2], rownames= F)

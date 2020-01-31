@@ -39,7 +39,11 @@ get_players <- function(season, only_current = 1, verbose=TRUE){
     link  <- glue("https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season={seasonid}&IsOnlyCurrentSeason={only_current}%20")
 
     verbose_print(verbose, link)
-    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')))$content) %>% fromJSON()
+    result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+                                                                   'connection' = 'keep-alive',
+                                                                   'Accept' = 'application/json',
+                                                                   'Host' = 'stats.nba.com',
+                                                                   'x-nba-stats-origin'= 'stats')))$content) %>% fromJSON()
 
     index <- which(result_sets_df$resultSets$name == "CommonAllPlayers")
     dataset <- result_sets_df$resultSets$rowSet[index][1] %>%
