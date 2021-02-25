@@ -6,3 +6,4 @@ NBAr.Rproj
 .Rbuildignore
 test.R
 .idea
+.DS_Store
