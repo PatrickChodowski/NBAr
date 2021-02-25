@@ -1,5 +1,12 @@
 # NBAr
 
+## Version 2.1.1 update:
+
+- solving wrong conversions from double to int for per, pie, ast_tov, ast_ratio, _freq, _frequency, pct_, spd, dist, _rating columns (hope I havent missed anything)
+- printing error messages instead of returning NULLs
+- fix for get_schedule and get_playbyplay2 as they stopped returning data (api change)
+- built on R version 4.0.4
+
 ## Version 2.0!
 
 Hey, welcome back after long break! I decided to face the horror of reviewing my old code and make some large refresh of the package. List of changes:
@@ -95,7 +102,6 @@ game_id = 21800001
 ### Play by play:
 #########################
 
- pbp1 <- map(gamelist, ~get_playbyplay(.)) %>% compact() %>%  bind_rows()
  pbp2 <- map(gamelist, ~get_playbyplay2(.)) %>% compact() %>%  bind_rows()
 
 #########################

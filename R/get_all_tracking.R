@@ -70,7 +70,8 @@ get_all_tracking <- function(season,
     }
 
     
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e)  
+      print(e$message))
 }
 
 

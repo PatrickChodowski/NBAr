@@ -44,7 +44,8 @@ get_all_on_off <- function(season,
     if(length(argz) > 0){
       dataset <- merge(dataset, data.frame(argz, stringsAsFactors = F) )
     }
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e)  
+      print(e$message))
 }
 
 

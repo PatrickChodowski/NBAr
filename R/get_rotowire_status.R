@@ -39,10 +39,10 @@ get_rotowire_status <- function(verbose=TRUE){
       as.data.frame(stringsAsFactors=F) %>%
       as_tibble() %>%
       mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- contains('_pct')), c_to_int)
+      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
     
     colnames(dataset) = tolower(names(result_sets_df$ListItems))
     verbose_dataset(verbose, dataset)
     
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e) print(e$message))
 }

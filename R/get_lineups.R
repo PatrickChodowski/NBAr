@@ -118,10 +118,10 @@ get_lineups <- function(season,
       mutate(n = group_quantity) %>%
       select(- c(group_set)) %>%
       mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- contains('_pct')), c_to_int)
+      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
 
     verbose_dataset(verbose, dataset)
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e) print(e$message))
 }
 
 

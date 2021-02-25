@@ -55,5 +55,5 @@ get_players <- function(season, only_current = 1, verbose=TRUE){
     colnames(dataset)[1] <- 'player_id'
 
     verbose_dataset(verbose, dataset)
-    return(dataset)}, error=function(e) NULL)}
+    return(dataset)}, error=function(e) print(e$message))}
 

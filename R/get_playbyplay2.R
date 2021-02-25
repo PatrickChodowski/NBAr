@@ -44,7 +44,7 @@ get_playbyplay2 <- function(game_id, verbose=TRUE){
   result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
                                                                  'connection' = 'keep-alive',
                                                                  'Accept' = 'application/json',
-                                                                 'Host' = 'stats.nba.com',
+                                                                 'Host' = 'data.nba.com',
                                                                  'x-nba-stats-origin'= 'stats')))$content) %>% fromJSON()
 
   cols <- c(ord = 0)
@@ -57,6 +57,8 @@ get_playbyplay2 <- function(game_id, verbose=TRUE){
            opid = as.numeric(opid),
            epid = as.numeric(epid)) %>%
     add_column(!!!cols[!names(cols) %in% names(.)]) %>%
+    mutate(opid = as.integer(opid),
+           epid = as.integer(epid)) %>%
     select(
       season_id,
       game_id,
@@ -82,11 +84,12 @@ get_playbyplay2 <- function(game_id, verbose=TRUE){
       visit_score = vs,
       order_no = ord) %>% as_tibble() %>%
     mutate(mins = as.numeric(minute(ms(clock))),
-           secs = as.numeric(second(ms(clock)))) 
+           secs = as.numeric(second(ms(clock))))
+
 
   verbose_dataset(verbose, dataset)
 
-  return(dataset)}, error=function(e) NULL)
+  return(dataset)}, error=function(e) print(e$message))
 }
 
 

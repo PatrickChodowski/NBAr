@@ -24,7 +24,6 @@ matchup <- get_matchups(game_id)
 ### Play by play:
 #########################
 
-pbp1 <- map(gamelist, ~get_playbyplay(.)) %>% compact() %>%  bind_rows()
 pbp2 <- map(gamelist, ~get_playbyplay2(.)) %>% compact() %>%  bind_rows()
 
 #########################

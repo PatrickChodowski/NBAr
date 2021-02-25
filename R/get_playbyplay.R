@@ -35,7 +35,7 @@ get_playbyplay <- function(game_id, verbose=TRUE){
     result_sets_df <- rawToChar(GET(link, add_headers(.headers = c('Referer' = 'http://google.com', 'User-Agent' = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
                                                                    'connection' = 'keep-alive',
                                                                    'Accept' = 'application/json',
-                                                                   'Host' = 'stats.nba.com',
+                                                                   'Host' = 'data.nba.com',
                                                                    'x-nba-stats-origin'= 'stats')))$content) %>% fromJSON()
     index <- which(result_sets_df$resultSets$name == "PlayByPlay")
 
@@ -47,12 +47,12 @@ get_playbyplay <- function(game_id, verbose=TRUE){
              secs = as.numeric(second(ms(pctimestring)))) %>%
       mutate(scoremargin = ifelse(scoremargin == 'TIE',0, scoremargin)) %>%
       mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- contains('_pct')), c_to_int)
+      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
     dataset[1,c("score","scoremargin")] <- c("0 - 0", 0)
     dataset[,c("score","scoremargin")] <- apply(dataset[,c("score","scoremargin")], 2, na.locf)
 
     verbose_dataset(verbose, dataset)
 
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e) print(e$message))
 }
 

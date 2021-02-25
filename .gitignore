@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 NBAr.Rproj
+.Rbuildignore
+test.R
+.idea

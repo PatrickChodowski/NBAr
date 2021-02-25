@@ -60,7 +60,7 @@ get_pro_transactions <- function(date_from, date_to, verbose = TRUE){
     
     verbose_dataset(verbose, dataset)
     
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e) print(e$message))
 }
 
 

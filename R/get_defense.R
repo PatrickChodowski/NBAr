@@ -126,12 +126,12 @@ get_defense <- function(season,
       as_tibble() %>%
       mutate_if(check_if_numeric, as.numeric) %>%
       set_names(tolower(unlist(result_sets_df$resultSets$headers[index]))) %>%
-      mutate_at(vars(- contains('_pct')), c_to_int)
+      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
 
     verbose_dataset(verbose, dataset)
 
     return(dataset)}
-, error=function(e) NULL)
+, error=function(e) print(e$message))
 }
 
 

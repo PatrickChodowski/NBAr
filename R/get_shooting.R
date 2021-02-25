@@ -153,11 +153,11 @@ get_shooting <- function(season,
       as_tibble() %>%
       mutate_if(check_if_numeric, as.numeric) %>%
       set_names(all_cols) %>%
-      mutate_at(vars(- contains('_pct')), c_to_int) %>%
+      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int) %>%
       mutate(date_from = date_from,
              date_to = date_to)
 
     verbose_dataset(verbose, dataset)
 
-    return(dataset) }, error=function(e) NULL)
+    return(dataset) }, error=function(e) print(e$message))
 }

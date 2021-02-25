@@ -67,11 +67,11 @@ get_boxscore <- function(game_id, boxscore_type, verbose = TRUE){
         mutate(mins = as.numeric(minute(ms(min))),
                secs = as.numeric(second(ms(min)))) %>%
         select(-min) %>%
-        mutate_at(vars(- contains('_pct')), c_to_int)
+        mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq|_rating|pace|ast_ratio|ast_tov')), c_to_int)
 
       verbose_dataset(verbose, dataset)
 
-      return(dataset)}, error=function(e) NULL)
+      return(dataset)}, error=function(e) print(e$message))
   }
 
 

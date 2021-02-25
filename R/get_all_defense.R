@@ -69,7 +69,8 @@ get_all_defense <- function(season,
     }
     
     
-    return(dataset)}, error=function(e) NULL)
+    return(dataset)}, error=function(e)  
+      print(e$message))
 }
 
 
