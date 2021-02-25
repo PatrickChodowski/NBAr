@@ -1,11 +1,21 @@
 # NBAr
 
-## Version 2.1.1 update:
+## Version 2.1.2 update:
 
 - solving wrong conversions from double to int for per, pie, ast_tov, ast_ratio, _freq, _frequency, pct_, spd, dist, _rating columns (hope I havent missed anything)
 - printing error messages instead of returning NULLs
 - fix for get_schedule and get_playbyplay2 as they stopped returning data (api change)
 - built on R version 4.0.4
+
+## Version 2.1.1
+- Fixed problem with wide open shots in shooting dashboard
+- Added dont_run to examples as it took long time to check build :)
+- Built finally on version 4.0.2
+
+Coming up next:
+
+- better try_catch messages for all functions, not just lazy Null returning
+- automated_test scripts
 
 ## Version 2.0!
 
