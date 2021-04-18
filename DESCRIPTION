@@ -1,7 +1,7 @@
 Package: NBAr
 Type: Package
 Title: Get NBA data to R faster and easier than ever before!
-Version: 2.1.2
+Version: 2.1.3
 Author: Patrick Chodowski
 Maintainer: Patrick Chodowski <chodowski.patrick@gmail.com>
 Description: Refreshed NBAr with better code.

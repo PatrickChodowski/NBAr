@@ -117,9 +117,7 @@ get_lineups <- function(season,
       separate(group_id, c("player_id_1", "player_id_2","player_id_3","player_id_4","player_id_5"), "-") %>%
       mutate(n = group_quantity) %>%
       select(- c(group_set)) %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
-
+      mutate_if(check_if_numeric, as.numeric) 
     verbose_dataset(verbose, dataset)
     return(dataset)}, error=function(e) print(e$message))
 }

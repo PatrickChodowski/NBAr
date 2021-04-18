@@ -89,9 +89,7 @@ dataset <- result_sets_df$resultSets$rowSet %>%
   as.data.frame(stringsAsFactors=F) %>%
   as_tibble() %>%
   mutate_if(check_if_numeric, as.numeric) %>%
-  set_names(tolower(unlist(result_sets_df$resultSets$headers))) %>%
-  mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq|ppp')), c_to_int)
-
+  set_names(tolower(unlist(result_sets_df$resultSets$headers))) 
 
 verbose_dataset(verbose, dataset)
 
