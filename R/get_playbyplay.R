@@ -46,8 +46,7 @@ get_playbyplay <- function(game_id, verbose=TRUE){
       mutate(mins = as.numeric(minute(ms(pctimestring))),
              secs = as.numeric(second(ms(pctimestring)))) %>%
       mutate(scoremargin = ifelse(scoremargin == 'TIE',0, scoremargin)) %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
+      mutate_if(check_if_numeric, as.numeric) 
     dataset[1,c("score","scoremargin")] <- c("0 - 0", 0)
     dataset[,c("score","scoremargin")] <- apply(dataset[,c("score","scoremargin")], 2, na.locf)
 

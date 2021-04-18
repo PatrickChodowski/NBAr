@@ -40,9 +40,7 @@ get_news <- function(limit=100, verbose=TRUE){
     dataset = result_sets_df$posts %>%
       as.data.frame(stringsAsFactors=F) %>%
       as_tibble() %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
-    
+      mutate_if(check_if_numeric, as.numeric) 
     colnames(dataset) = tolower(colnames(dataset))
     verbose_dataset(verbose, dataset)
     

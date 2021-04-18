@@ -108,8 +108,7 @@ get_on_off <- function(season,
     dataset_on <- result_sets_df$resultSets$rowSet[index[1]][1] %>%
       as.data.frame(stringsAsFactors=F) %>%
       as_tibble() %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
+      mutate_if(check_if_numeric, as.numeric)
 
     colnames(dataset_on)[1:8] <- cols[1:8]
     colnames(dataset_on)[9:13] <- c("min_on","plus_minus_on","off_rating_on","def_rating_on","net_rating_on")
@@ -117,9 +116,7 @@ get_on_off <- function(season,
     dataset_off <- result_sets_df$resultSets$rowSet[index[2]][1] %>%
       as.data.frame(stringsAsFactors=F) %>%
       as_tibble() %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq|_rating')), c_to_int)
-
+      mutate_if(check_if_numeric, as.numeric) 
     colnames(dataset_off)[1:8] <- cols[1:8]
     colnames(dataset_off)[9:13] <- c("min_off","plus_minus_off","off_rating_off","def_rating_off","net_rating_off")
 

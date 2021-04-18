@@ -51,9 +51,7 @@ get_hustle <- function(game_id, verbose=TRUE){
       set_names(tolower(unlist(result_sets_df$resultSets$headers[index]))) %>%
       mutate(mins = as.numeric(minute(ms(minutes))),
              secs = as.numeric(second(ms(minutes)))) %>%
-      select(-minutes) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int)
-
+      select(-minutes)
     verbose_dataset(verbose, dataset)
     return(dataset)}, error=function(e) print(e$message))
 }

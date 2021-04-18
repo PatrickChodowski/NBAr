@@ -38,6 +38,7 @@ get_boxscore <- function(game_id, boxscore_type, verbose = TRUE){
 
       season <- get_season_id(game_id)
       season_type <- get_season_type(game_id)
+      
 
       link = glue("https://stats.nba.com/stats/boxscore{boxscore_type}v2",
                   "?EndPeriod=10",
@@ -66,9 +67,7 @@ get_boxscore <- function(game_id, boxscore_type, verbose = TRUE){
         set_names(tolower(unlist(result_sets_df$resultSets$headers[index]))) %>%
         mutate(mins = as.numeric(minute(ms(min))),
                secs = as.numeric(second(ms(min)))) %>%
-        select(-min) %>%
-        mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq|_rating|pace|ast_ratio|ast_tov')), c_to_int)
-
+        select(-min) 
       verbose_dataset(verbose, dataset)
 
       return(dataset)}, error=function(e) print(e$message))

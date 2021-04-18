@@ -153,7 +153,6 @@ get_shooting <- function(season,
       as_tibble() %>%
       mutate_if(check_if_numeric, as.numeric) %>%
       set_names(all_cols) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int) %>%
       mutate(date_from = date_from,
              date_to = date_to)
 

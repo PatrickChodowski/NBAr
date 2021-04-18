@@ -49,9 +49,7 @@ get_matchups <- function(game_id, verbose = TRUE){
       as.data.frame(stringsAsFactors=F) %>%
       as_tibble() %>%
       set_names(tolower(unlist(result_sets_df$resultSets$headers[index]))) %>%
-      mutate_if(check_if_numeric, as.numeric) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq|pct_')), c_to_int)
-
+      mutate_if(check_if_numeric, as.numeric) 
     verbose_dataset(verbose, dataset)
     return(dataset)}, error=function(e) print(e$message))
 }

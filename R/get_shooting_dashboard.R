@@ -158,7 +158,6 @@ get_shooting_dashboard <- function( season,
       as_tibble() %>%
       mutate_if(check_if_numeric, as.numeric) %>%
       set_names(tolower(unlist(result_sets_df$resultSets$headers[index]))) %>%
-      mutate_at(vars(- matches('_pct|spd|dist|_frequency|pie|per|_freq')), c_to_int) %>%
       mutate(general_range = general_range,
              shot_clock_range = shot_clock_range,
              dribble_range = dribble_range,
